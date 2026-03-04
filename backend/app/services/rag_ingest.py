@@ -9,7 +9,7 @@ from langchain_core.documents import Document
 from langchain_openai import ChatOpenAI, OpenAIEmbeddings
 from langchain_chroma import Chroma
 from langchain_core.messages import HumanMessage
-
+from app.core.config import settings
 from app.services.storage import project_chroma_dir
 
 # 1) Ясен poppler bin път (папката, в която са pdfinfo.exe и pdftoppm.exe)
@@ -67,7 +67,7 @@ def separate_content_types(chunk):
     return content_data
 
 def create_ai_enhanced_summary(text: str, tables: List[str], images: List[str]) -> str:
-    llm = ChatOpenAI(model="gpt-4o", temperature=0)
+    llm = ChatOpenAI(model="gpt-4o", temperature=0, api_key=settings.openai_api_key)
     prompt_text = f"""You are creating a searchable description for document content retrieval.
 
 TEXT CONTENT:
@@ -122,7 +122,7 @@ def summarise_chunks(chunks):
     return docs
 
 def create_vector_store(documents, persist_directory: str):
-    embedding_model = OpenAIEmbeddings(model="text-embedding-3-small")
+    embedding_model = OpenAIEmbeddings(model="text-embedding-3-small", api_key=settings.openai_api_key)
     return Chroma.from_documents(
         documents=documents,
         embedding=embedding_model,

@@ -5,10 +5,11 @@ from langchain_chroma import Chroma
 from langchain_openai import OpenAIEmbeddings
 from langchain_core.messages import HumanMessage
 from app.services.storage import project_chroma_dir
+from app.core.config import settings
 
 def load_project_db(project_id: str) -> Chroma:
     persist_dir = project_chroma_dir(project_id)
-    embedding_model = OpenAIEmbeddings(model="text-embedding-3-small")
+    embedding_model = OpenAIEmbeddings(model="text-embedding-3-small", api_key=settings.openai_api_key)
     return Chroma(persist_directory=persist_dir, embedding_function=embedding_model)
 
 def retrieve_with_scores(db: Chroma, query: str, k: int = 4):
@@ -16,7 +17,7 @@ def retrieve_with_scores(db: Chroma, query: str, k: int = 4):
     return db.similarity_search_with_score(query, k=k)
 
 def generate_final_answer(chunks, query: str) -> str:
-    llm = ChatOpenAI(model="gpt-4o", temperature=0)
+    llm = ChatOpenAI(model="gpt-4o", temperature=0, api_key=settings.openai_api_key)
 
     prompt_text = f"""Answer the question using ONLY the provided documents.
 If the documents do not contain enough information, say: "I don't know based on the provided documents."

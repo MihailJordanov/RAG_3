@@ -18,4 +18,4 @@ app.include_router(chat_router)
 app.include_router(jobs_router)
 
 # uvicorn app.main:app --reload
-# python -m app.workers.rq_worker
+# python -m app.workers.rq_worker 

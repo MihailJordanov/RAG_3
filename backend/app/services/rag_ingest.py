@@ -29,7 +29,7 @@ def partition_document(file_path: str):
     try:
         elements = partition_pdf(
             filename=file_path,
-            strategy="hi_res",
+            strategy="fast", # "hi_res"
             infer_table_structure=True,
             extract_image_block_types=["Image"],
             extract_image_block_to_payload=True,

@@ -1,3 +1,15 @@
+# --- MUST be first: disable unstructured NLTK auto-download (403 workaround) ---
+import unstructured.nlp.tokenize as utok
+
+def _no_download():
+    return None
+
+utok.download_nltk_packages = _no_download
+utok._download_nltk_packages_if_not_present = _no_download
+# -----------------------------------------------------------------------------
+
+
+
 from sqlalchemy.orm import Session
 from app.db.session import SessionLocal
 from app.db.models import Job

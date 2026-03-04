@@ -3,15 +3,18 @@ from rq import Connection, Queue, SimpleWorker
 from rq.timeouts import TimerDeathPenalty
 from app.core.config import settings
 
-listen = ["default"]
+LISTEN_QUEUES = ["default"]
 redis_conn = Redis.from_url(settings.redis_url)
 
 class WindowsSimpleWorker(SimpleWorker):
-    # ✅ TimerDeathPenalty работи на Windows (не използва SIGALRM)
+    """RQ worker for Windows (no SIGALRM)."""
     death_penalty_class = TimerDeathPenalty
 
-if __name__ == "__main__":
+def main() -> None:
     with Connection(redis_conn):
-        queues = [Queue(name) for name in listen]
+        queues = [Queue(name) for name in LISTEN_QUEUES]
         worker = WindowsSimpleWorker(queues)
         worker.work()
+
+if __name__ == "__main__":
+    main()

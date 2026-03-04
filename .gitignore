@@ -1,0 +1,20 @@
+# Environment variables
+.env
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Virtual environment
+myvenv/
+venv/
+
+# FAISS index (ако стане persistent)
+faiss_index/
+*.faiss
+*.pkl
+
+# Docker
+*.log

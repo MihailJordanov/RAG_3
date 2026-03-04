@@ -24,5 +24,3 @@ faiss_index/
 .vscode/
 .idea/
 .DS_Store.venv/
-
-code.txt

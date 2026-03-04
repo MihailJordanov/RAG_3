@@ -25,6 +25,9 @@ export const api = {
   createProject: (name: string) =>
     http<Project>("/projects", { method: "POST", body: JSON.stringify({ name }) }),
 
+  deleteProject: (projectId: string) =>
+    http<{ status: string }>(`/projects/${projectId}`, { method: "DELETE" }),
+
   // ingest
   ingestPdf: async (projectId: string, file: File) => {
     const form = new FormData();
@@ -35,6 +38,7 @@ export const api = {
       body: form,
       cache: "no-store",
     });
+
     if (!res.ok) throw new Error(await res.text());
     return res.json() as Promise<{ job_id: string; status: string; file: string }>;
   },
@@ -49,7 +53,7 @@ export const api = {
       body: JSON.stringify({ message }),
     }),
 
-  // history (ако добавиш endpoint)
+  // history
   listMessages: (projectId: string) =>
     http<ChatMessage[]>(`/projects/${projectId}/messages`),
 };

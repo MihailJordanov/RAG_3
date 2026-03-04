@@ -6,6 +6,7 @@ from app.services.rag_chat import chat as rag_chat
 
 router = APIRouter(prefix="/projects", tags=["chat"])
 
+
 @router.post("/{project_id}/chat")
 def chat(project_id: str, payload: dict, db: Session = Depends(get_db)):
     q = payload.get("message", "").strip()
@@ -21,3 +22,15 @@ def chat(project_id: str, payload: dict, db: Session = Depends(get_db)):
     db.commit()
 
     return {"answer": answer, "sources": sources}
+
+@router.get("/{project_id}/messages")
+def list_messages(project_id: str, db: Session = Depends(get_db)):
+    msgs = (
+        db.query(Message)
+        .filter(Message.project_id == project_id)
+        .order_by(Message.created_at.asc(), Message.id.asc())
+        .all()
+    )
+    return [{"id": m.id, "role": m.role, "content": m.content, "created_at": m.created_at} for m in msgs]
+
+    

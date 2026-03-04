@@ -7,9 +7,10 @@ __pycache__/
 *.pyo
 *.pyd
 
-# Virtual environment
-myvenv/
+# Virtual environments
+.venv/
 venv/
+env/
 
 # FAISS index (ако стане persistent)
 faiss_index/
@@ -18,3 +19,8 @@ faiss_index/
 
 # Docker
 *.log
+
+# OS/IDE
+.vscode/
+.idea/
+.DS_Store

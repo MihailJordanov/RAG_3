@@ -25,4 +25,4 @@ faiss_index/
 .idea/
 .DS_Store.venv/
 
-./code.txt
+*.code.txt

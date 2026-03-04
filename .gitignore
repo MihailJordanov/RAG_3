@@ -24,3 +24,17 @@ faiss_index/
 .vscode/
 .idea/
 .DS_Store.venv/
+
+
+# dependencies
+node_modules/
+frontend/node_modules/
+
+
+# next
+.next/
+frontend/.next/
+
+# misc
+.env*
+.DS_Store

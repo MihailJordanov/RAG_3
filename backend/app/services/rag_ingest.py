@@ -16,7 +16,7 @@ from app.services.storage import project_chroma_dir
 POPPLER_BIN = r"C:\Users\User\Downloads\Release-25.12.0-0\poppler-25.12.0\Library\bin"
 
 def partition_document(file_path: str):
-    # (по желание) guard: да не гърми с неясна грешка
+    # guard за poppler
     pdfinfo_exe = os.path.join(POPPLER_BIN, "pdfinfo.exe")
     pdftoppm_exe = os.path.join(POPPLER_BIN, "pdftoppm.exe")
     if not (os.path.exists(pdfinfo_exe) and os.path.exists(pdftoppm_exe)):
@@ -25,22 +25,29 @@ def partition_document(file_path: str):
             "Fix POPPLER_BIN to point to the folder containing pdfinfo.exe and pdftoppm.exe."
         )
 
-    # 2) Най-важното: подай poppler пътя към pdf2image през unstructured
-    try:
-        elements = partition_pdf(
+    def _extract(strategy: str):
+        return partition_pdf(
             filename=file_path,
-            strategy="fast", # "hi_res"
+            strategy=strategy,
             infer_table_structure=True,
             extract_image_block_types=["Image"],
             extract_image_block_to_payload=True,
-            pdf2image_poppler_path=POPPLER_BIN,  # <-- FIX за Windows
+            pdf2image_poppler_path=POPPLER_BIN,
         )
-        return elements
-    except TypeError as e:
-        # Ако твоята версия на unstructured не приема този keyword,
-        # ще падне тук. В такъв случай ми пейстни `pip show unstructured`
-        # и ще ти дам точния keyword.
-        raise
+
+    print(">>> partition_document: trying FAST")
+    elements = _extract("fast")
+    fast_text_elems = sum(bool(getattr(e, "text", "").strip()) for e in elements)
+    print(">>> FAST elements:", len(elements), "text_elems:", fast_text_elems)
+
+    if not elements or fast_text_elems == 0:
+        print(">>> partition_document: FAST empty -> trying HI_RES")
+        elements = _extract("hi_res")
+        hi_text_elems = sum(bool(getattr(e, "text", "").strip()) for e in elements)
+        print(">>> HI_RES elements:", len(elements), "text_elems:", hi_text_elems)
+
+    return elements
+
 
 def create_chunks_by_title(elements):
     return chunk_by_title(
@@ -130,11 +137,61 @@ def create_vector_store(documents, persist_directory: str):
         collection_metadata={"hnsw:space": "cosine"},
     )
 
+
 def ingest_pdf_to_project(project_id: str, pdf_path: str):
     elements = partition_document(pdf_path)
+
+    # Събирай plain text от елементи
+    raw_text = "\n\n".join(
+        [e.text.strip() for e in elements if getattr(e, "text", None) and e.text.strip()]
+    )
+
+    # 1) Опитай chunk_by_title
     chunks = create_chunks_by_title(elements)
-    docs = summarise_chunks(chunks)
+
+    # 2) Ако chunk_by_title не даде нищо, fallback към текстови chunks
+    docs = []
+    if chunks:
+        docs = summarise_chunks(chunks)
+
+    if not docs:
+        # fallback: режи raw_text на части
+        if not raw_text.strip():
+            raise RuntimeError(
+                "No text could be extracted from the PDF even after hi_res fallback. "
+                "This PDF may be images-only or OCR failed."
+            )
+
+        chunk_size = 1500
+        overlap = 200
+        i = 0
+        while i < len(raw_text):
+            docs.append(Document(page_content=raw_text[i:i+chunk_size], metadata={}))
+            i += max(1, chunk_size - overlap)
 
     persist_dir = project_chroma_dir(project_id)
     db = create_vector_store(docs, persist_directory=persist_dir)
     return {"persist_dir": persist_dir, "chunks": len(docs)}
+
+
+
+def elements_to_text(elements) -> str:
+    parts = []
+    for el in elements:
+        t = getattr(el, "text", None)
+        if t and t.strip():
+            parts.append(t.strip())
+    return "\n\n".join(parts)
+
+def chunk_text(text: str, chunk_size: int = 1500, overlap: int = 200) -> list[str]:
+    if not text.strip():
+        return []
+    chunks = []
+    i = 0
+    n = len(text)
+    while i < n:
+        chunks.append(text[i:i+chunk_size])
+        i += max(1, chunk_size - overlap)
+    return chunks
+
+

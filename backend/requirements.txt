@@ -1,20 +1,52 @@
+# ---------------------------
+# FastAPI backend
+# ---------------------------
 fastapi==0.115.0
 uvicorn[standard]==0.30.6
 python-multipart==0.0.9
+python-dotenv==1.0.1
 pydantic-settings==2.4.0
 
+# ---------------------------
+# Database
+# ---------------------------
 SQLAlchemy==2.0.32
 psycopg[binary]==3.2.1
 
+# ---------------------------
+# Background jobs
+# ---------------------------
 redis==5.0.8
 rq==1.16.2
 
-python-dotenv==1.0.1
-
-unstructured[all-docs]==0.15.9
+# ---------------------------
+# LangChain + OpenAI
+# ---------------------------
 langchain==0.2.16
 langchain-community==0.2.16
 langchain-openai==0.1.22
+tiktoken==0.7.0
+
+# ---------------------------
+# Vector database
+# ---------------------------
 langchain-chroma==0.1.4
 chromadb==0.5.3
+
+# Chroma telemetry fix
+posthog==3.5.0
+monotonic==1.6
+
+# ---------------------------
+# Document ingestion
+# ---------------------------
+unstructured[all-docs]==0.15.9
 pytesseract==0.3.13
+
+# ---------------------------
+# Runtime stability pins
+# ---------------------------
+pydantic==2.12.5
+typing-extensions==4.15.0
+httpx==0.28.1
+orjson==3.11.7

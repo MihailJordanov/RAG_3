@@ -1,5 +1,6 @@
 import json
 import os
+import hashlib
 from typing import List
 
 from langchain_chroma import Chroma
@@ -15,7 +16,6 @@ from app.services.storage import project_chroma_dir
 
 POPPLER_BIN = r"C:\Users\User\Downloads\Release-25.12.0-0\poppler-25.12.0\Library\bin"
 
-# Chunking defaults (RAG-friendly)
 TITLE_MAX_CHARS = 3000
 TITLE_NEW_AFTER = 2400
 TITLE_COMBINE_UNDER = 500
@@ -145,29 +145,40 @@ SEARCHABLE DESCRIPTION:
     return response.content
 
 
-def summarise_chunks(chunks) -> list[Document]:
+def _make_chunk_id(project_id: str, idx: int, raw_text: str) -> str:
+    h = hashlib.sha256()
+    h.update(project_id.encode("utf-8", errors="ignore"))
+    h.update(str(idx).encode("utf-8"))
+    h.update((raw_text or "").encode("utf-8", errors="ignore"))
+    return h.hexdigest()
+
+
+def summarise_chunks(project_id: str, chunks) -> list[Document]:
     docs: list[Document] = []
 
-    for chunk in chunks:
+    for idx, chunk in enumerate(chunks):
         content = separate_content_types(chunk)
 
-        # Only “enhance” if we have tables/images; otherwise keep raw text.
         if content["tables"] or content["images"]:
             enhanced = create_ai_enhanced_summary(content["text"], content["tables"], content["images"])
         else:
             enhanced = content["text"]
 
+        chunk_id = _make_chunk_id(project_id, idx, content["text"])
+
         docs.append(
             Document(
                 page_content=enhanced,
                 metadata={
+                    "chunk_id": chunk_id,
+                    "chunk_index": idx,
                     "original_content": json.dumps(
                         {
                             "raw_text": content["text"],
                             "tables_html": content["tables"],
                             "images_base64": content["images"],
                         }
-                    )
+                    ),
                 },
             )
         )
@@ -189,11 +200,9 @@ def ingest_pdf_to_project(project_id: str, pdf_path: str) -> dict:
     elements = partition_document(pdf_path)
     raw_text = _elements_to_text(elements)
 
-    # 1) Prefer title-based chunking
     chunks = create_chunks_by_title(elements)
-    docs: list[Document] = summarise_chunks(chunks) if chunks else []
+    docs: list[Document] = summarise_chunks(project_id, chunks) if chunks else []
 
-    # 2) Fallback: plain text chunking
     if not docs:
         text_chunks = _fallback_chunk_text(raw_text)
         if not text_chunks:
@@ -201,7 +210,17 @@ def ingest_pdf_to_project(project_id: str, pdf_path: str) -> dict:
                 "No text could be extracted from the PDF (even after hi_res fallback). "
                 "The PDF may be images-only or OCR failed."
             )
-        docs = [Document(page_content=t, metadata={}) for t in text_chunks]
+
+        fallback_docs: list[Document] = []
+        for idx, t in enumerate(text_chunks):
+            chunk_id = _make_chunk_id(project_id, idx, t)
+            fallback_docs.append(
+                Document(
+                    page_content=t,
+                    metadata={"chunk_id": chunk_id, "chunk_index": idx},
+                )
+            )
+        docs = fallback_docs
 
     persist_dir = project_chroma_dir(project_id)
     _ = create_vector_store(docs, persist_directory=persist_dir)

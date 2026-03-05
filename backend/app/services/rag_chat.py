@@ -9,6 +9,7 @@ from langchain_core.documents import Document
 from langchain_core.messages import HumanMessage
 from langchain_openai import ChatOpenAI, OpenAIEmbeddings
 
+from app.services.mmr import retrieve_with_scores_mmr
 from app.services.bm25_index import load_bm25, bm25_search
 from app.core.config import settings
 from app.services.storage import project_chroma_dir
@@ -188,6 +189,7 @@ def chat(
     max_distance: float = DEFAULT_MAX_DISTANCE,
 ) -> Tuple[str, list]:
     db = load_project_db(project_id)
+    embedding_model = OpenAIEmbeddings(model="text-embedding-3-small", api_key=settings.openai_api_key)
 
     persist_dir = project_chroma_dir(project_id)
     bm25_index = load_bm25(persist_dir)
@@ -201,7 +203,14 @@ def chat(
 
     for q in queries:
         # Vector
-        vec = retrieve_with_scores(db, q, k=per_query_k) or []
+        vec = retrieve_with_scores_mmr(
+            db,
+            q,
+            k=per_query_k,
+            fetch_k=max(20, per_query_k * 4),
+            lambda_mult=0.5,
+            embedding_model=embedding_model,
+        ) or []
         if vec:
             all_results.append([(doc, float(dist), "vector") for (doc, dist) in vec])
 

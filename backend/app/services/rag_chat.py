@@ -148,14 +148,22 @@ def _rrf_fuse_weighted(
 def generate_final_answer(docs: list[Document], query: str) -> str:
     llm = ChatOpenAI(model="gpt-4o", temperature=0, api_key=settings.openai_api_key)
 
-    prompt = """Answer the question using ONLY the provided documents.
-If the documents do not contain enough information, say exactly:
-"I don't know based on the provided documents."
+    prompt = """
+        You are answering questions using ONLY the provided documents.
 
-Question: {q}
+        If the answer is clearly present in the documents:
+        - provide a concise answer.
 
-DOCUMENTS:
-""".format(q=query)
+        If the documents do NOT contain the answer:
+        - respond exactly with:
+        "I don't know based on the provided documents."
+
+        Do NOT include both an answer and the fallback sentence.
+
+        Question: {q}
+
+        DOCUMENTS:
+        """.format(q=query)
 
     for i, d in enumerate(docs, start=1):
         prompt += f"\n--- Doc {i} ---\n"

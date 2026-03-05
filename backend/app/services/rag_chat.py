@@ -10,9 +10,9 @@ from app.core.config import settings
 from app.services.storage import project_chroma_dir
 
 
-DEFAULT_K = 6
+DEFAULT_K = 10
 # Cosine distance in Chroma often behaves in ~[0..1], lower is better.
-DEFAULT_MAX_DISTANCE = 0.70
+DEFAULT_MAX_DISTANCE = 0.90
 
 
 def load_project_db(project_id: str) -> Chroma:

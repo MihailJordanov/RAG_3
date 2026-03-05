@@ -10,6 +10,7 @@ from langchain_openai import ChatOpenAI, OpenAIEmbeddings
 from unstructured.chunking.title import chunk_by_title
 from unstructured.partition.pdf import partition_pdf
 
+from app.services.bm25_index import build_bm25_index, save_bm25
 from app.core.config import settings
 from app.services.storage import project_chroma_dir
 
@@ -224,4 +225,8 @@ def ingest_pdf_to_project(project_id: str, pdf_path: str) -> dict:
 
     persist_dir = project_chroma_dir(project_id)
     _ = create_vector_store(docs, persist_directory=persist_dir)
+
+    bm25_index = build_bm25_index(docs)
+    bm25_path = save_bm25(bm25_index, persist_dir=persist_dir)
+
     return {"persist_dir": persist_dir, "chunks": len(docs)}

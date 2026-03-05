@@ -8,11 +8,14 @@ from langchain_openai import ChatOpenAI, OpenAIEmbeddings
 
 from app.core.config import settings
 from app.services.storage import project_chroma_dir
+from app.services.query_fixing.query_preprocess import normalize_query
+from app.services.query_fixing.query_rewrite import llm_spell_fix_bg
+
 
 
 DEFAULT_K = 6
 # Cosine distance in Chroma often behaves in ~[0..1], lower is better.
-DEFAULT_MAX_DISTANCE = 0.70
+DEFAULT_MAX_DISTANCE = 0.90
 
 
 def load_project_db(project_id: str) -> Chroma:
@@ -61,7 +64,6 @@ DOCUMENTS:
     msg = HumanMessage(content=[{"type": "text", "text": prompt}])
     return llm.invoke([msg]).content
 
-
 def chat(
     project_id: str,
     query: str,
@@ -69,7 +71,31 @@ def chat(
     max_distance: float = DEFAULT_MAX_DISTANCE,
 ) -> Tuple[str, list]:
     db = load_project_db(project_id)
-    results = retrieve_with_scores(db, query, k=k)
+
+    # Keep original for UI, but use working_query for retrieval/generation
+    working_query = query
+
+    # 1) First try: normalized query
+    query_norm = normalize_query(working_query)
+    results = retrieve_with_scores(db, query_norm, k=k)
+
+    best = min((float(s) for _, s in results), default=999.0)
+
+    # 2) If retrieval looks weak, try LLM spell-fix (fallback)
+    # Also avoid calling LLM for very short queries unless needed.
+    if best > 0.85 and len(query_norm) >= 4:
+        fixed = llm_spell_fix_bg(working_query)
+        fixed_norm = normalize_query(fixed)
+
+        # Only retry if LLM actually changed something
+        if fixed_norm and fixed_norm != query_norm:
+            results2 = retrieve_with_scores(db, fixed_norm, k=k)
+            best2 = min((float(s) for _, s in results2), default=999.0)
+
+            if best2 < best:
+                results = results2
+                best = best2
+                working_query = fixed  # IMPORTANT: use fixed question downstream
 
     if not results:
         return "I don't know based on the provided documents.", []
@@ -78,11 +104,12 @@ def chat(
     distances = [float(score) for _, score in results]  # lower is better
     best = min(distances)
 
-    # If everything is too far, treat as “no evidence”
+    # 3) Hard gating (optional). If you keep it, make it very lenient.
     if best > max_distance:
         return "I don't know based on the provided documents.", [{"score": s} for s in distances]
 
-    answer = generate_final_answer(docs, query)
+    # IMPORTANT: generate answer using working_query (fixed if improved)
+    answer = generate_final_answer(docs, working_query)
 
     sources = [
         {"score": s, "preview": _doc_raw_text(d, limit=160).replace("\n", " ")}

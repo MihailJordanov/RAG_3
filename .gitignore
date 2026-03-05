@@ -12,10 +12,13 @@ __pycache__/
 venv/
 env/
 
-# FAISS index (ако стане persistent)
+# FAISS index
 faiss_index/
 *.faiss
 *.pkl
+
+# RAG data (vector DB, uploads)
+backend/data/
 
 # Docker
 *.log
@@ -23,13 +26,11 @@ faiss_index/
 # OS/IDE
 .vscode/
 .idea/
-.DS_Store.venv/
-
+.DS_Store
 
 # dependencies
 node_modules/
 frontend/node_modules/
-
 
 # next
 .next/

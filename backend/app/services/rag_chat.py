@@ -9,6 +9,7 @@ from langchain_core.documents import Document
 from langchain_core.messages import HumanMessage
 from langchain_openai import ChatOpenAI, OpenAIEmbeddings
 
+from app.services.reranker.reranker import rerank_fused_results
 from app.services.mmr import retrieve_with_scores_mmr
 from app.services.bm25_index import load_bm25, bm25_search
 from app.core.config import settings
@@ -27,6 +28,9 @@ RRF_K = 60  # standard constant for RRF: score += 1/(RRF_K + rank)
 DEFAULT_BM25_K = 10
 VECTOR_WEIGHT = 0.7
 BM25_WEIGHT = 0.3
+
+# Rerancker
+DEFAULT_RERANK_TOP_N = 5
 
 class QueryVariations(BaseModel):
     queries: List[str] = Field(default_factory=list)
@@ -234,14 +238,13 @@ def chat(
     # 3) Fuse with RRF + dedupe
     fused = _rrf_fuse_weighted(all_results, final_k=k)
 
-    docs = [x["doc"] for x in fused]
     best_vector_distance = min([x["best_distance"] for x in fused if x["vector_hits"] > 0] or [1.0])
     has_bm25_evidence = any(x["bm25_hits"] > 0 for x in fused)
 
     # 4) Evidence gate:
-    # - ако имаме добър vector -> OK
-    # - иначе, ако имаме bm25 попадения -> OK (keyword evidence)
-    # - иначе -> "I don't know..."
+    # - if we have a strong vector hit -> OK
+    # - otherwise, if we have BM25 evidence -> OK
+    # - otherwise -> fallback
     if (best_vector_distance > max_distance) and (not has_bm25_evidence):
         sources = [
             {
@@ -250,13 +253,23 @@ def chat(
                 "hits": int(x["hits"]),
                 "vector_hits": int(x["vector_hits"]),
                 "bm25_hits": int(x["bm25_hits"]),
+                "rerank_score": None,
                 "preview": _doc_raw_text(x["doc"], limit=160).replace("\n", " "),
             }
             for x in fused
         ]
         return "I don't know based on the provided documents.", sources
 
-    # 5) Final answer (use fused top-k docs)
+    # 5) Rerank top fused candidates before final generation
+    reranked = rerank_fused_results(
+        query=query,
+        fused=fused,
+        top_n=min(DEFAULT_RERANK_TOP_N, len(fused)),
+    )
+
+    docs = [x["doc"] for x in reranked]
+
+    # 6) Final answer (use reranked top docs)
     answer = generate_final_answer(docs, query)
 
     sources = [
@@ -264,9 +277,13 @@ def chat(
             "score": float(x["best_distance"]),
             "rrf_score": float(x["rrf_score"]),
             "hits": int(x["hits"]),
+            "vector_hits": int(x["vector_hits"]),
+            "bm25_hits": int(x["bm25_hits"]),
+            "rerank_score": x.get("rerank_score"),
+            "rerank_applied": bool(x.get("rerank_applied", False)),
             "preview": _doc_raw_text(x["doc"], limit=160).replace("\n", " "),
         }
-        for x in fused
+        for x in reranked
     ]
     return answer, sources
 

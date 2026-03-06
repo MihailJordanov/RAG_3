@@ -50,3 +50,6 @@ pydantic==2.12.5
 typing-extensions==4.15.0
 httpx==0.28.1
 orjson==3.11.7
+
+
+cohere==5.20.7

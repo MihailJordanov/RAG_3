@@ -16,21 +16,18 @@ from app.core.config import settings
 from app.services.storage import project_chroma_dir
 
 
-DEFAULT_K = 10
+DEFAULT_K = 12
 DEFAULT_MAX_DISTANCE = 0.90
 
-# Multi-query defaults
-DEFAULT_NUM_QUERY_VARIATIONS = 3
-DEFAULT_PER_QUERY_K = 5  # how many docs to fetch per variation (RRF works better with >1)
-RRF_K = 60  # standard constant for RRF: score += 1/(RRF_K + rank)
+DEFAULT_NUM_QUERY_VARIATIONS = 4
+DEFAULT_PER_QUERY_K = 6
+RRF_K = 60
 
-# Hybrid defaults
 DEFAULT_BM25_K = 10
-VECTOR_WEIGHT = 0.7
-BM25_WEIGHT = 0.3
+VECTOR_WEIGHT = 0.70
+BM25_WEIGHT = 0.30
 
-# Rerancker
-DEFAULT_RERANK_TOP_N = 5
+DEFAULT_RERANK_TOP_N = 7
 
 class QueryVariations(BaseModel):
     queries: List[str] = Field(default_factory=list)

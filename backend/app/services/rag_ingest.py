@@ -10,7 +10,7 @@ from langchain_openai import ChatOpenAI, OpenAIEmbeddings
 from unstructured.chunking.title import chunk_by_title
 from unstructured.partition.pdf import partition_pdf
 
-from app.services.bm25_index import build_bm25_index, save_bm25
+from backend.app.services.bm25.bm25_index import build_bm25_index, save_bm25
 from app.core.config import settings
 from app.services.storage import project_chroma_dir
 

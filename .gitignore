@@ -39,3 +39,6 @@ frontend/.next/
 # misc
 .env*
 .DS_Store
+
+# RAG test outputs
+backend/app/tests/outputs/*

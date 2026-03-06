@@ -230,3 +230,5 @@ def ingest_pdf_to_project(project_id: str, pdf_path: str) -> dict:
     bm25_path = save_bm25(bm25_index, persist_dir=persist_dir)
 
     return {"persist_dir": persist_dir, "chunks": len(docs)}
+
+

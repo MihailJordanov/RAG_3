@@ -325,3 +325,30 @@ def _get_docs_by_chunk_ids(db: Chroma, chunk_ids: list[str]) -> list[Document]:
         return [by_id[cid] for cid in chunk_ids if cid in by_id]
     except Exception:
         return []
+    
+
+
+# За тестване
+def ask_question(
+    project_id: str,
+    question: str,
+    k: int = DEFAULT_K,
+    max_distance: float = DEFAULT_MAX_DISTANCE,
+) -> Dict[str, Any]:
+    """
+    Simple programmatic wrapper for automated tests / scripts.
+
+    Returns a dict so test runners can save structured output.
+    """
+    answer, sources = chat(
+        project_id=project_id,
+        query=question,
+        k=k,
+        max_distance=max_distance,
+    )
+
+    return {
+        "question": question,
+        "answer": answer,
+        "sources": sources,
+    }

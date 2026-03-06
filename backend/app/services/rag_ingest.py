@@ -169,13 +169,7 @@ def summarise_chunks(project_id: str, chunks) -> list[Document]:
 
         docs.append(
             Document(
-                page_content = f"""
-                    ORIGINAL TEXT:
-                    {content["text"]}
-
-                    AI SUMMARY:
-                    {enhanced}
-                    """,
+                page_content=enhanced,
                 metadata={
                     "chunk_id": chunk_id,
                     "chunk_index": idx,

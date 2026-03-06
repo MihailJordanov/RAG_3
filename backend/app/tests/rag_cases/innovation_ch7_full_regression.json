@@ -1,0 +1,486 @@
+{
+  "project_id": "0213b8a1-da54-4030-9f0d-f196992b0613",
+  "name": "innovation_ch7_full_regression",
+  "questions": [
+    {
+      "question": "Какво означава терминът „иновация“?",
+      "type": "answerable",
+      "expected_contains": []
+    },
+    {
+      "question": "Каква е разликата между изобретение и иновация?",
+      "type": "answerable",
+      "expected_contains": []
+    },
+    {
+      "question": "Кои са трите основни компонента на иновациите?",
+      "type": "answerable",
+      "expected_contains": []
+    },
+    {
+      "question": "Кои са трите основни етапа при прехода от изобретение към иновация?",
+      "type": "answerable",
+      "expected_contains": []
+    },
+    {
+      "question": "Кои са четирите типа иновации според ОИСР?",
+      "type": "answerable",
+      "expected_contains": []
+    },
+    {
+      "question": "Какво представляват продуктовите иновации?",
+      "type": "answerable",
+      "expected_contains": []
+    },
+    {
+      "question": "Какво представляват процесните иновации?",
+      "type": "answerable",
+      "expected_contains": []
+    },
+    {
+      "question": "Какво представляват маркетинговите иновации?",
+      "type": "answerable",
+      "expected_contains": []
+    },
+    {
+      "question": "Какво представляват организационните иновации?",
+      "type": "answerable",
+      "expected_contains": []
+    },
+    {
+      "question": "Какво представляват социалните иновации?",
+      "type": "answerable",
+      "expected_contains": []
+    },
+    {
+      "question": "Кои са шестте фази на иновационния процес според Паукърт?",
+      "type": "answerable",
+      "expected_contains": []
+    },
+    {
+      "question": "С какво започва всеки иновационен процес?",
+      "type": "answerable",
+      "expected_contains": []
+    },
+    {
+      "question": "Какво се прави на етапа създаване на идея?",
+      "type": "answerable",
+      "expected_contains": []
+    },
+    {
+      "question": "Какво включва етапът разработване на подход?",
+      "type": "answerable",
+      "expected_contains": []
+    },
+    {
+      "question": "Каква е целта на етапа подготовка на прототип?",
+      "type": "answerable",
+      "expected_contains": []
+    },
+    {
+      "question": "Какво се извършва на етапа валидация?",
+      "type": "answerable",
+      "expected_contains": []
+    },
+    {
+      "question": "Какво означава пазарна експлоатация?",
+      "type": "answerable",
+      "expected_contains": []
+    },
+    {
+      "question": "Какви са трите направления в обобщения иновационен процес?",
+      "type": "answerable",
+      "expected_contains": []
+    },
+    {
+      "question": "Какво включва бизнес направлението на иновационния процес?",
+      "type": "answerable",
+      "expected_contains": []
+    },
+    {
+      "question": "Какво включва пазарното направление?",
+      "type": "answerable",
+      "expected_contains": []
+    },
+    {
+      "question": "Какво представляват постепенните иновации?",
+      "type": "answerable",
+      "expected_contains": []
+    },
+    {
+      "question": "Какво представляват съществените иновации?",
+      "type": "answerable",
+      "expected_contains": []
+    },
+    {
+      "question": "Какво представлява технологичната революция като тип иновация?",
+      "type": "answerable",
+      "expected_contains": []
+    },
+    {
+      "question": "Какво представляват пробивните иновации?",
+      "type": "answerable",
+      "expected_contains": []
+    },
+    {
+      "question": "Какъв пример е даден за съществена иновация?",
+      "type": "answerable",
+      "expected_contains": []
+    },
+    {
+      "question": "Какви примери за пробивни иновации са посочени в текста?",
+      "type": "answerable",
+      "expected_contains": []
+    },
+    {
+      "question": "Какво представлява затвореният модел на иновации?",
+      "type": "answerable",
+      "expected_contains": []
+    },
+    {
+      "question": "Какво представляват отворените иновации?",
+      "type": "answerable",
+      "expected_contains": []
+    },
+    {
+      "question": "Какво е crowd‑sourcing?",
+      "type": "answerable",
+      "expected_contains": []
+    },
+    {
+      "question": "Какво представляват вградените иновации?",
+      "type": "answerable",
+      "expected_contains": []
+    },
+    {
+      "question": "Защо вградените иновации са подходящи за МСП?",
+      "type": "answerable",
+      "expected_contains": []
+    },
+    {
+      "question": "Какво могат да научат организациите от общностите по афинитет?",
+      "type": "answerable",
+      "expected_contains": []
+    },
+    {
+      "question": "Какво могат да придобият организациите от практическите общности?",
+      "type": "answerable",
+      "expected_contains": []
+    },
+    {
+      "question": "Какво представляват общностите по интереси?",
+      "type": "answerable",
+      "expected_contains": []
+    },
+    {
+      "question": "Каква е ролята на научните общности?",
+      "type": "answerable",
+      "expected_contains": []
+    },
+    {
+      "question": "Какъв е проблемът при трансфера на знания към МСП?",
+      "type": "answerable",
+      "expected_contains": []
+    },
+    {
+      "question": "Какво представляват водещите потребители?",
+      "type": "answerable",
+      "expected_contains": []
+    },
+    {
+      "question": "Кои са етапите на проучване на пазара чрез водещи потребители?",
+      "type": "answerable",
+      "expected_contains": []
+    },
+    {
+      "question": "Каква е ролята на водещите потребители при тестването на продукт?",
+      "type": "answerable",
+      "expected_contains": []
+    },
+    {
+      "question": "Какво представляват конкурсите за идеи?",
+      "type": "answerable",
+      "expected_contains": []
+    },
+    {
+      "question": "Какъв период обикновено продължават конкурсите за идеи?",
+      "type": "answerable",
+      "expected_contains": []
+    },
+    {
+      "question": "Какви критерии се използват за оценка на идеи?",
+      "type": "answerable",
+      "expected_contains": []
+    },
+    {
+      "question": "Какво представляват виртуалните общности?",
+      "type": "answerable",
+      "expected_contains": []
+    },
+    {
+      "question": "Кои са типовете виртуални общности?",
+      "type": "answerable",
+      "expected_contains": []
+    },
+    {
+      "question": "Какво представляват брокерите на знания?",
+      "type": "answerable",
+      "expected_contains": []
+    },
+    {
+      "question": "Какви функции изпълняват брокерите на знания?",
+      "type": "answerable",
+      "expected_contains": []
+    },
+    {
+      "question": "Какво представляват живите лаборатории?",
+      "type": "answerable",
+      "expected_contains": []
+    },
+    {
+      "question": "Какви характеристики имат живите лаборатории?",
+      "type": "answerable",
+      "expected_contains": []
+    },
+    {
+      "question": "Как организациите използват информацията за клиентите?",
+      "type": "answerable",
+      "expected_contains": []
+    },
+    {
+      "question": "Какво означава Customer Knowledge Management?",
+      "type": "answerable",
+      "expected_contains": []
+    },
+    {
+      "question": "Какво представлява просумеризмът?",
+      "type": "answerable",
+      "expected_contains": []
+    },
+    {
+      "question": "Какво представляват взаимните иновации?",
+      "type": "answerable",
+      "expected_contains": []
+    },
+    {
+      "question": "Какво представлява общият интелектуален капитал?",
+      "type": "answerable",
+      "expected_contains": []
+    },
+    {
+      "question": "Кога потребителите имат мотивация да иновират?",
+      "type": "answerable",
+      "expected_contains": []
+    },
+    {
+      "question": "Какво мотивира водещите потребители?",
+      "type": "answerable",
+      "expected_contains": []
+    },
+    {
+      "question": "Какво мотивира масовите потребители да участват в иновации?",
+      "type": "answerable",
+      "expected_contains": []
+    },
+    {
+      "question": "Какво представляват дребните задачи pico jobs?",
+      "type": "answerable",
+      "expected_contains": []
+    },
+    {
+      "question": "Какви са характеристиките на pico jobs?",
+      "type": "answerable",
+      "expected_contains": []
+    },
+    {
+      "question": "Защо доверието е важно при вградените иновации?",
+      "type": "answerable",
+      "expected_contains": []
+    },
+    {
+      "question": "Кои са нивата на доверие в общностите?",
+      "type": "answerable",
+      "expected_contains": []
+    },
+    {
+      "question": "Какви мерки гарантират доверие при иновационни общности?",
+      "type": "answerable",
+      "expected_contains": []
+    },
+    {
+      "question": "Каква е целта на програмата SAP университетски алианси?",
+      "type": "answerable",
+      "expected_contains": []
+    },
+    {
+      "question": "Кои участници участват в SAP общност за иновации?",
+      "type": "answerable",
+      "expected_contains": []
+    },
+    {
+      "question": "Колко фази има конкурсът за идеи на SAP?",
+      "type": "answerable",
+      "expected_contains": []
+    },
+    {
+      "question": "Какво се случва в подготвителната фаза на конкурса?",
+      "type": "answerable",
+      "expected_contains": []
+    },
+    {
+      "question": "Как участниците публикуват идеите си?",
+      "type": "answerable",
+      "expected_contains": []
+    },
+    {
+      "question": "Как се извършва оценяването на идеите?",
+      "type": "answerable",
+      "expected_contains": []
+    },
+    {
+      "question": "Какво се случва след онлайн оценяването?",
+      "type": "answerable",
+      "expected_contains": []
+    },
+    {
+      "question": "Колко студенти проявяват интерес към конкурса?",
+      "type": "answerable",
+      "expected_contains": []
+    },
+    {
+      "question": "Колко участници представят идеи?",
+      "type": "answerable",
+      "expected_contains": []
+    },
+    {
+      "question": "Колко идеи са представени общо?",
+      "type": "answerable",
+      "expected_contains": []
+    },
+    {
+      "question": "Колко време продължава конкурсът?",
+      "type": "answerable",
+      "expected_contains": []
+    },
+    {
+      "question": "Какво мотивира участниците в конкурса?",
+      "type": "answerable",
+      "expected_contains": []
+    },
+    {
+      "question": "Как доверието влияе върху участието в конкурса?",
+      "type": "answerable",
+      "expected_contains": []
+    },
+    {
+      "question": "Как технологичното развитие влияе върху иновационните модели?",
+      "type": "answerable",
+      "expected_contains": []
+    },
+    {
+      "question": "Каква е разликата между затворени и отворени иновации?",
+      "type": "answerable",
+      "expected_contains": []
+    },
+    {
+      "question": "Защо Web 2.0 подпомага отворените иновации?",
+      "type": "answerable",
+      "expected_contains": []
+    },
+    {
+      "question": "Защо Web 3.0 е свързан с вградени иновации?",
+      "type": "answerable",
+      "expected_contains": []
+    },
+    {
+      "question": "Каква е връзката между организационното учене и иновациите?",
+      "type": "answerable",
+      "expected_contains": []
+    },
+    {
+      "question": "Как се различават CKM и CRM?",
+      "type": "answerable",
+      "expected_contains": []
+    },
+    {
+      "question": "Как участието на клиентите повишава иновационния капацитет?",
+      "type": "answerable",
+      "expected_contains": []
+    },
+    {
+      "question": "Каква е ролята на доверието при трансфер на знания?",
+      "type": "answerable",
+      "expected_contains": []
+    },
+    {
+      "question": "Какво включва критерият пазарен потенциал при оценка на идеи?",
+      "type": "answerable",
+      "expected_contains": []
+    },
+    {
+      "question": "Какво включва критерият качество?",
+      "type": "answerable",
+      "expected_contains": []
+    },
+    {
+      "question": "Какво включва стратегическо съответствие?",
+      "type": "answerable",
+      "expected_contains": []
+    },
+    {
+      "question": "Кои нива на доверие са свързани с практическите общности?",
+      "type": "answerable",
+      "expected_contains": []
+    },
+    {
+      "question": "Кои нива на доверие са свързани с научните общности?",
+      "type": "answerable",
+      "expected_contains": []
+    },
+    {
+      "question": "Какви възможности дават pico jobs?",
+      "type": "answerable",
+      "expected_contains": []
+    },
+    {
+      "question": "Коя година е основана SAP?",
+      "type": "unanswerable"
+    },
+    {
+      "question": "Колко служители има SAP днес?",
+      "type": "unanswerable"
+    },
+    {
+      "question": "Кой е авторът на глава 6?",
+      "type": "unanswerable"
+    },
+    {
+      "question": "Какъв е бюджетът на конкурса за идеи на SAP?",
+      "type": "unanswerable"
+    },
+    {
+      "question": "Коя държава е лидер по иновации в ЕС според текста?",
+      "type": "unanswerable"
+    },
+    {
+      "question": "Какви са точните парични награди в конкурса на SAP?",
+      "type": "unanswerable"
+    },
+    {
+      "question": "Какъв процент от участниците са жени?",
+      "type": "unanswerable"
+    },
+    {
+      "question": "Какъв софтуер е използван за платформата на конкурса?",
+      "type": "unanswerable"
+    },
+    {
+      "question": "Кой е главният изпълнителен директор на SAP?",
+      "type": "unanswerable"
+    },
+    {
+      "question": "Коя компания е основен конкурент на SAP в този текст?",
+      "type": "unanswerable"
+    }
+  ]
+}

@@ -11,7 +11,7 @@ from langchain_openai import ChatOpenAI, OpenAIEmbeddings
 
 from app.services.reranker.reranker import rerank_fused_results
 from app.services.mmr import retrieve_with_scores_mmr
-from backend.app.services.bm25.bm25_index import load_bm25, bm25_search
+from app.services.bm25.bm25_index import load_bm25, bm25_search
 from app.core.config import settings
 from app.services.storage import project_chroma_dir
 

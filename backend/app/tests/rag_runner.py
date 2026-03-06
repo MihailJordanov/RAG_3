@@ -2,9 +2,10 @@ import json
 import os
 import argparse
 from datetime import datetime
+import time
 
 # python -m app.tests.rag_runner --case app/tests/rag_cases/little_prince.json
-from app.services.rag_chat import ask_question
+from app.services.rag_chat import ask_question, RAG_CONFIG
 
 
 def load_case(path: str):
@@ -39,9 +40,17 @@ def main():
         txt_file.write(f"CASE: {case_name}\n")
         txt_file.write(f"PROJECT_ID: {project_id}\n\n")
 
+        txt_file.write("RAG CONFIG:\n")
+        for k, v in RAG_CONFIG.items():
+            txt_file.write(f"{k}: {v}\n")
+
+        txt_file.write("\n" + "=" * 80 + "\n\n")
+
         for i, question in enumerate(questions, start=1):
             try:
+                start = time.time()
                 response = ask_question(project_id=project_id, question=question)
+                latency = round(time.time() - start, 3)
 
                 # нагоди това според твоя return shape
                 answer = response["answer"] if isinstance(response, dict) else str(response)
@@ -50,7 +59,8 @@ def main():
                     "index": i,
                     "question": question,
                     "answer": answer,
-                    "status": "ok"
+                    "status": "ok",
+                    "latency_sec": latency
                 })
 
                 txt_file.write(f"[{i}] QUESTION:\n{question}\n")
@@ -78,6 +88,7 @@ def main():
         json.dump({
             "case_name": case_name,
             "project_id": project_id,
+            "rag_config": RAG_CONFIG,
             "results": results
         }, f, ensure_ascii=False, indent=2)
 

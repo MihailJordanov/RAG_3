@@ -329,17 +329,27 @@ def _get_docs_by_chunk_ids(db: Chroma, chunk_ids: list[str]) -> list[Document]:
 
 
 # За тестване
+
+RAG_CONFIG = {
+    "DEFAULT_K": DEFAULT_K,
+    "DEFAULT_MAX_DISTANCE": DEFAULT_MAX_DISTANCE,
+
+    "DEFAULT_NUM_QUERY_VARIATIONS": DEFAULT_NUM_QUERY_VARIATIONS,
+    "DEFAULT_PER_QUERY_K": DEFAULT_PER_QUERY_K,
+    "RRF_K": RRF_K,
+
+    "DEFAULT_BM25_K": DEFAULT_BM25_K,
+    "VECTOR_WEIGHT": VECTOR_WEIGHT,
+    "BM25_WEIGHT": BM25_WEIGHT,
+
+    "DEFAULT_RERANK_TOP_N": DEFAULT_RERANK_TOP_N,
+}
+
 def ask_question(
-    project_id: str,
-    question: str,
-    k: int = DEFAULT_K,
+    project_id: str, question: str, k: int = DEFAULT_K,
     max_distance: float = DEFAULT_MAX_DISTANCE,
 ) -> Dict[str, Any]:
-    """
-    Simple programmatic wrapper for automated tests / scripts.
 
-    Returns a dict so test runners can save structured output.
-    """
     answer, sources = chat(
         project_id=project_id,
         query=question,
@@ -351,4 +361,5 @@ def ask_question(
         "question": question,
         "answer": answer,
         "sources": sources,
+        "config": RAG_CONFIG,
     }

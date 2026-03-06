@@ -16,18 +16,15 @@ from app.core.config import settings
 from app.services.storage import project_chroma_dir
 
 
-DEFAULT_K = 12
-DEFAULT_MAX_DISTANCE = 0.90
-
-DEFAULT_NUM_QUERY_VARIATIONS = 4
-DEFAULT_PER_QUERY_K = 6
+DEFAULT_K = 10
+DEFAULT_MAX_DISTANCE = 0.85
+DEFAULT_NUM_QUERY_VARIATIONS = 3
+DEFAULT_PER_QUERY_K = 5
 RRF_K = 60
-
 DEFAULT_BM25_K = 8
 VECTOR_WEIGHT = 0.75
 BM25_WEIGHT = 0.25
-
-DEFAULT_RERANK_TOP_N = 7
+DEFAULT_RERANK_TOP_N = 6
 
 class QueryVariations(BaseModel):
     queries: List[str] = Field(default_factory=list)

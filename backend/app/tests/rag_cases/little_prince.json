@@ -2,34 +2,146 @@
   "project_id": "cce19486-24a5-4130-b094-fe7ac5557c23",
   "name": "little_prince_regression",
   "questions": [
-    "Who wrote The Little Prince?",
-    "To whom is the book dedicated?",
-    "What does the little prince ask the narrator to draw when they first meet?",
-    "Where did the narrator crash his airplane?",
-    "What animal does the little prince ask for?",
-    "What drawing do the grown-ups think is a hat?",
-    "What is the name of the asteroid where the little prince lives?",
-    "What problem do baobabs cause on the little prince’s planet?",
-    "Why must the baobabs be removed early?",
-    "What does the little prince say about sunsets on his planet?",
-    "Why does the little prince leave his planet?",
-    "Why is the little prince worried about his flower?",
-    "What lesson does the little prince teach about responsibility?",
-    "Why does the fox say that the rose is unique?",
-    "What does the fox mean by 'taming'?",
-    "What does the fox teach about friendship?",
-    "What is the secret that the fox shares with the little prince?",
-    "Why do the grown-ups fail to understand the narrator’s drawing?",
-    "What does the businessman claim to own, and why?",
-    "What does the lamplighter do on his planet?",
-    "Why does the geographer refuse to record flowers?",
-    "What is the population of the little prince’s planet?",
-    "What color is the little prince’s house?",
-    "What food does the little prince eat every day?",
-    "What is the exact distance between Earth and asteroid B-612?",
-    "What lesson does the fox teach the little prince?",
-    "What does the fox say about friendship?",
-    "What is the meaning of taming according to the fox?",
-    "Why are baobabs dangerous for the little prince’s planet?"
+    {
+      "question": "Who wrote The Little Prince?",
+      "type": "answerable",
+      "expected_contains": ["Antoine", "Saint Exupéry"]
+    },
+    {
+      "question": "To whom is the book dedicated?",
+      "type": "answerable",
+      "expected_contains": ["Leon Werth"]
+    },
+    {
+      "question": "What does the little prince ask the narrator to draw when they first meet?",
+      "type": "answerable",
+      "expected_contains": ["sheep"]
+    },
+    {
+      "question": "Where did the narrator crash his airplane?",
+      "type": "answerable",
+      "expected_contains": ["Sahara"]
+    },
+    {
+      "question": "What animal does the little prince ask for?",
+      "type": "answerable",
+      "expected_contains": ["sheep"]
+    },
+    {
+      "question": "What drawing do the grown-ups think is a hat?",
+      "type": "answerable",
+      "expected_contains": ["boa constrictor", "elephant", "hat"]
+    },
+    {
+      "question": "What is the name of the asteroid where the little prince lives?",
+      "type": "answerable",
+      "expected_contains": ["B-612"]
+    },
+    {
+      "question": "What problem do baobabs cause on the little prince’s planet?",
+      "type": "answerable",
+      "expected_contains": ["roots", "split", "planet"]
+    },
+    {
+      "question": "Why must the baobabs be removed early?",
+      "type": "answerable",
+      "expected_contains_any": ["grow", "large", "roots", "split"]
+    },
+    {
+      "question": "What does the little prince say about sunsets on his planet?",
+      "type": "answerable",
+      "expected_contains": ["sunset"]
+    },
+    {
+      "question": "Why does the little prince leave his planet?",
+      "type": "answerable",
+      "expected_contains": ["flower"]
+    },
+    {
+      "question": "Why is the little prince worried about his flower?",
+      "type": "answerable",
+      "expected_contains": ["sheep", "flower"]
+    },
+    {
+      "question": "What lesson does the little prince teach about responsibility?",
+      "type": "answerable",
+      "expected_contains": ["responsible"]
+    },
+    {
+      "question": "Why does the fox say that the rose is unique?",
+      "type": "answerable",
+      "expected_contains": ["rose", "unique"]
+    },
+    {
+      "question": "What does the fox mean by 'taming'?",
+      "type": "answerable",
+      "expected_contains": ["establish ties"]
+    },
+    {
+      "question": "What does the fox teach about friendship?",
+      "type": "answerable",
+      "expected_contains": ["ties"]
+    },
+    {
+      "question": "What is the secret that the fox shares with the little prince?",
+      "type": "answerable",
+      "expected_contains": ["heart", "essential", "invisible"]
+    },
+    {
+      "question": "Why do the grown-ups fail to understand the narrator’s drawing?",
+      "type": "answerable",
+      "expected_contains": ["hat"]
+    },
+    {
+      "question": "What does the businessman claim to own, and why?",
+      "type": "answerable",
+      "expected_contains": ["stars", "rich"]
+    },
+    {
+      "question": "What does the lamplighter do on his planet?",
+      "type": "answerable",
+      "expected_contains": ["lamp"]
+    },
+    {
+      "question": "Why does the geographer refuse to record flowers?",
+      "type": "answerable",
+      "expected_contains": ["ephemeral"]
+    },
+    {
+      "question": "What is the population of the little prince’s planet?",
+      "type": "unanswerable"
+    },
+    {
+      "question": "What color is the little prince’s house?",
+      "type": "unanswerable"
+    },
+    {
+      "question": "What food does the little prince eat every day?",
+      "type": "unanswerable"
+    },
+    {
+      "question": "What is the exact distance between Earth and asteroid B-612?",
+      "type": "unanswerable"
+    },
+    {
+      "question": "What lesson does the fox teach the little prince?",
+      "type": "answerable",
+      "expected_contains_any": ["ties", "responsible", "essential", "tamed"]
+    },
+    {
+      "question": "What does the fox say about friendship?",
+      "type": "answerable",
+      "expected_contains": ["ties"]
+    },
+    {
+      "question": "What is the meaning of taming according to the fox?",
+      "type": "answerable",
+      "expected_contains": ["establish ties"]
+    },
+    {
+      "question": "Why are baobabs dangerous for the little prince’s planet?",
+      "type": "answerable",
+      "expected_contains": ["roots", "split", "planet"]
+    }
   ]
 }

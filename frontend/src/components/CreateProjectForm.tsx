@@ -21,7 +21,14 @@ export default function CreateProjectForm({
   };
 
   const handleCreate = () => {
-    if (!newProjectName.trim()) return;
+    const trimmed = newProjectName.trim();
+
+    if (!trimmed) return;
+
+    if (trimmed.length > 32) {
+    alert("Project name must be 32 characters or less.");
+    return;
+    }
     onCreate();
     setOpen(false);
   };
@@ -83,7 +90,11 @@ export default function CreateProjectForm({
                 onChange={(e) => onNewProjectNameChange(e.target.value)}
                 placeholder="Enter project name..."
                 className="project-modal-input"
+                maxLength={32}
               />
+              <div className="project-name-counter">
+                {newProjectName.length}/32
+              </div>
 
               <div className="create-project-actions">
                 <button

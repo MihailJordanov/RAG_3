@@ -6,7 +6,7 @@ import ProjectList from "./ProjectList";
 import ChatWindow from "./ChatWindow";
 import UploadCard from "./UploadCard";
 import SourcesPanel from "./SourcesPanel";
-import type { Project, ChatMessage, ProjectSource  } from "@/lib/types";
+import type { Project, ChatMessage, ProjectSource } from "@/lib/types";
 
 export default function Shell() {
   const [projects, setProjects] = useState<Project[]>([]);
@@ -42,7 +42,7 @@ export default function Shell() {
 
     loadSources(activeProjectId).catch(console.error);
   }, [activeProjectId]);
-  
+
   useEffect(() => {
     if (!activeProjectId) {
       setMessages([]);
@@ -69,6 +69,8 @@ export default function Shell() {
     () => projects.find((p) => p.id === activeProjectId) ?? null,
     [projects, activeProjectId]
   );
+
+  const hasSelectedProject = !!activeProject;
 
   async function handleCreateProject() {
     const name = newProjectName.trim();
@@ -200,22 +202,69 @@ export default function Shell() {
         <section className="panel chat-panel">
           <ChatWindow
             projectName={activeProject?.name ?? "No project selected"}
+            hasSelectedProject={hasSelectedProject}
             messages={messages}
             isGenerating={isGenerating || isLoadingMessages}
             onSend={handleSendMessage}
+            newProjectName={newProjectName}
+            onNewProjectNameChange={setNewProjectName}
+            onCreateProject={handleCreateProject}
           />
         </section>
 
         <aside className="panel right-panel">
-          <UploadCard
-            projectName={activeProject?.name ?? null}
-            onUpload={handleUpload}
-          />
-          <SourcesPanel
-            projectName={activeProject?.name ?? null}
-            sources={sources}
-            isLoading={isLoadingSources}
-            />
+          {hasSelectedProject ? (
+            <>
+              <UploadCard
+                projectName={activeProject?.name ?? null}
+                onUpload={handleUpload}
+              />
+              <SourcesPanel
+                projectName={activeProject?.name ?? null}
+                sources={sources}
+                isLoading={isLoadingSources}
+              />
+            </>
+          ) : (
+            <div className="right-card empty-right-card">
+              <div className="card-header">
+                <p className="eyebrow">Getting Started</p>
+                <h3 className="card-title glow-text">How it works</h3>
+              </div>
+
+              <div className="empty-right-content">
+                <div className="empty-step">
+                  <span className="empty-step-number">1</span>
+                  <div>
+                    <div className="empty-step-title">Create a project</div>
+                    <div className="empty-step-text">
+                      Start by creating a workspace for your files and chats.
+                    </div>
+                  </div>
+                </div>
+
+                <div className="empty-step">
+                  <span className="empty-step-number">2</span>
+                  <div>
+                    <div className="empty-step-title">Upload documents</div>
+                    <div className="empty-step-text">
+                      Add PDFs and build a searchable knowledge base.
+                    </div>
+                  </div>
+                </div>
+
+                <div className="empty-step">
+                  <span className="empty-step-number">3</span>
+                  <div>
+                    <div className="empty-step-title">Ask questions</div>
+                    <div className="empty-step-text">
+                      Chat with your project and retrieve answers from your data.
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
         </aside>
       </section>
     </main>

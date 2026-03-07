@@ -2,19 +2,29 @@
 
 import { useState } from "react";
 import type { ChatMessage } from "@/lib/types";
+import CreateProjectForm from "./CreateProjectForm";
 
 type Props = {
   projectName: string;
+  hasSelectedProject: boolean;
   messages: ChatMessage[];
   isGenerating: boolean;
   onSend: (text: string) => void | Promise<void>;
+
+  newProjectName: string;
+  onNewProjectNameChange: (value: string) => void;
+  onCreateProject: () => void;
 };
 
 export default function ChatWindow({
   projectName,
+  hasSelectedProject,
   messages,
   isGenerating,
   onSend,
+  newProjectName,
+  onNewProjectNameChange,
+  onCreateProject,
 }: Props) {
   const [input, setInput] = useState("");
   const isEmptyChat = messages.length === 0;
@@ -23,10 +33,35 @@ export default function ChatWindow({
     e.preventDefault();
 
     const trimmed = input.trim();
-    if (!trimmed || isGenerating) return;
+    if (!trimmed || isGenerating || !hasSelectedProject) return;
 
     setInput("");
     await onSend(trimmed);
+  }
+
+  if (!hasSelectedProject) {
+    return (
+      <div className="chat-window no-project-chat">
+        <section className="no-project-state">
+          <div className="no-project-icon">✦</div>
+
+          <p className="eyebrow">RAG Workspace</p>
+          <h1 className="no-project-title glow-text">No project selected</h1>
+          <p className="no-project-subtitle">
+            Create your first project to start uploading documents, building a
+            knowledge base, and chatting with your files.
+          </p>
+
+          <div className="no-project-actions">
+            <CreateProjectForm
+              newProjectName={newProjectName}
+              onNewProjectNameChange={onNewProjectNameChange}
+              onCreate={onCreateProject}
+            />
+          </div>
+        </section>
+      </div>
+    );
   }
 
   return (
@@ -55,7 +90,11 @@ export default function ChatWindow({
         </header>
       )}
 
-      <div className={`messages-area custom-scroll ${isEmptyChat ? "messages-empty" : ""}`}>
+      <div
+        className={`messages-area custom-scroll ${
+          isEmptyChat ? "messages-empty" : ""
+        }`}
+      >
         {messages.map((message, index) => (
           <div
             key={index}
@@ -100,12 +139,12 @@ export default function ChatWindow({
           onChange={(e) => setInput(e.target.value)}
           placeholder="Ask something about your project documents..."
           className="composer-input"
-          disabled={!projectName || projectName === "No project selected"}
+          disabled={!hasSelectedProject}
         />
         <button
           type="submit"
           className="send-button"
-          disabled={isGenerating || !projectName || projectName === "No project selected"}
+          disabled={isGenerating || !hasSelectedProject}
         >
           Send
         </button>

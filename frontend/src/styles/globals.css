@@ -634,16 +634,18 @@ button {
   letter-spacing: -0.05em;
 }
 
-.chat-hero-subtitle {
-  margin: 14px 0 18px;
-  color: var(--text-soft);
-  font-size: 1.05rem;
+.chat-hero-subtitle,
+.chat-project-name {
+  white-space: normal;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
-.chat-project-name {
-  margin: 6px 0 0;
-  color: var(--text-soft);
-  font-size: 0.95rem;
+.project-name-counter {
+  text-align: right;
+  font-size: 0.8rem;
+  margin-top: 6px;
+  color: rgba(220,235,255,0.45);
 }
 
 .messages-empty {
@@ -815,6 +817,106 @@ button {
 .custom-scroll::-webkit-scrollbar-thumb:hover {
   background: rgba(168, 85, 247, 0.38);
 }
+
+
+.no-project-chat {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100%;
+}
+
+.no-project-state {
+  max-width: 560px;
+  margin: 0 auto;
+  padding: 32px 24px;
+  text-align: center;
+}
+
+.no-project-icon {
+  width: 84px;
+  height: 84px;
+  margin: 0 auto 20px;
+  border-radius: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+  color: #00ffb7;
+  background: radial-gradient(circle at top, rgba(0, 255, 183, 0.18), rgba(255, 255, 255, 0.04));
+  border: 1px solid rgba(0, 255, 183, 0.18);
+  box-shadow:
+    0 0 30px rgba(0, 255, 183, 0.12),
+    inset 0 0 20px rgba(255, 255, 255, 0.03);
+}
+
+.no-project-title {
+  margin: 8px 0 12px;
+  font-size: 2rem;
+  line-height: 1.15;
+}
+
+.no-project-subtitle {
+  max-width: 500px;
+  margin: 0 auto;
+  color: rgba(220, 235, 255, 0.72);
+  font-size: 1rem;
+  line-height: 1.7;
+}
+
+.no-project-actions {
+  display: flex;
+  justify-content: center;
+  margin-top: 28px;
+}
+
+.empty-right-card {
+  min-height: 100%;
+}
+
+.empty-right-content {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  margin-top: 12px;
+}
+
+.empty-step {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+  padding: 14px;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.empty-step-number {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: #04130f;
+  background: #00ffb7;
+  box-shadow: 0 0 18px rgba(0, 255, 183, 0.2);
+}
+
+.empty-step-title {
+  color: #f4fffd;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.empty-step-text {
+  color: rgba(220, 235, 255, 0.68);
+  line-height: 1.55;
+}
+
 
 @keyframes fadeIn {
   from {

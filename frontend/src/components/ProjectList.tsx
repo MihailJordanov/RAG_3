@@ -24,6 +24,9 @@ export default function ProjectList({
   onCreate,
   onDelete,
 }: Props) {
+  function truncateProjectName(name: string, max = 12) {
+    return name.length > max ? `${name.slice(0, max)}...` : name;
+  }
   return (
     <div className="sidebar">
       <div className="sidebar-header">
@@ -58,7 +61,9 @@ export default function ProjectList({
               >
                 <span className="project-dot" />
                 <div className="project-meta">
-                  <span className="project-name">{project.name}</span>
+                  <span className="project-name" title={project.name}>
+                    {truncateProjectName(project.name)}
+                  </span>
                   <span className="project-subtitle">{project.id}</span>
                 </div>
               </button>

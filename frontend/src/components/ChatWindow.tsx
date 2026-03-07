@@ -1,18 +1,11 @@
 "use client";
 
 import { useState } from "react";
-
-type Message = {
-  id: string;
-  role: "user" | "assistant";
-  content: string;
-};
-
-var appName: string = "RAG 3"
+import type { ChatMessage } from "@/lib/types";
 
 type Props = {
   projectName: string;
-  messages: Message[];
+  messages: ChatMessage[];
   isGenerating: boolean;
   onSend: (text: string) => void | Promise<void>;
 };
@@ -25,11 +18,12 @@ export default function ChatWindow({
 }: Props) {
   const [input, setInput] = useState("");
   const isEmptyChat = messages.length === 0;
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
 
     const trimmed = input.trim();
-    if (!trimmed) return;
+    if (!trimmed || isGenerating) return;
 
     setInput("");
     await onSend(trimmed);
@@ -37,34 +31,34 @@ export default function ChatWindow({
 
   return (
     <div className="chat-window">
-        {isEmptyChat ? (
+      {isEmptyChat ? (
         <section className="chat-hero">
-            <p className="eyebrow">AI Workspace</p>
-            <h1 className="chat-hero-title glow-text">{appName}</h1>
-            <p className="chat-hero-subtitle">{projectName}</p>
+          <p className="eyebrow">AI Workspace</p>
+          <h1 className="chat-hero-title glow-text">RAG 3</h1>
+          <p className="chat-hero-subtitle">{projectName}</p>
 
-            <div className={`status-pill ${isGenerating ? "live" : ""}`}>
+          <div className={`status-pill ${isGenerating ? "live" : ""}`}>
             {isGenerating ? "Generating..." : "Ready"}
-            </div>
+          </div>
         </section>
-        ) : (
+      ) : (
         <header className="chat-header">
-            <div>
+          <div>
             <p className="eyebrow">AI Workspace</p>
-            <h2 className="chat-title glow-text">{appName}</h2>
+            <h2 className="chat-title glow-text">RAG 3</h2>
             <p className="chat-project-name">{projectName}</p>
-            </div>
+          </div>
 
-            <div className={`status-pill ${isGenerating ? "live" : ""}`}>
+          <div className={`status-pill ${isGenerating ? "live" : ""}`}>
             {isGenerating ? "Generating..." : "Ready"}
-            </div>
+          </div>
         </header>
-        )}
+      )}
 
       <div className={`messages-area custom-scroll ${isEmptyChat ? "messages-empty" : ""}`}>
-        {messages.map((message) => (
+        {messages.map((message, index) => (
           <div
-            key={message.id}
+            key={index}
             className={`message-row ${
               message.role === "user" ? "user-row" : "assistant-row"
             }`}
@@ -106,8 +100,13 @@ export default function ChatWindow({
           onChange={(e) => setInput(e.target.value)}
           placeholder="Ask something about your project documents..."
           className="composer-input"
+          disabled={!projectName || projectName === "No project selected"}
         />
-        <button type="submit" className="send-button">
+        <button
+          type="submit"
+          className="send-button"
+          disabled={isGenerating || !projectName || projectName === "No project selected"}
+        >
           Send
         </button>
       </form>

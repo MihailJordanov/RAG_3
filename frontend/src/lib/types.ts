@@ -23,3 +23,4 @@ export type ChatResponse = {
   answer: string;
   sources: Array<{ score: number; preview?: string }>;
 };
+

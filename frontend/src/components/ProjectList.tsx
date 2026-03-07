@@ -1,14 +1,13 @@
 "use client";
 
-type Project = {
-  id: string;
-  name: string;
-};
+import type { Project } from "@/lib/types";
 
 type Props = {
   projects: Project[];
   activeProjectId: string;
   busyId: string | null;
+  newProjectName: string;
+  onNewProjectNameChange: (value: string) => void;
   onSelect: (id: string) => void;
   onCreate: () => void;
   onDelete: (id: string) => void;
@@ -18,6 +17,8 @@ export default function ProjectList({
   projects,
   activeProjectId,
   busyId,
+  newProjectName,
+  onNewProjectNameChange,
   onSelect,
   onCreate,
   onDelete,
@@ -29,8 +30,19 @@ export default function ProjectList({
           <p className="eyebrow">Workspace</p>
           <h1 className="sidebar-title glow-text">RAG Projects</h1>
         </div>
+      </div>
 
-        <button className="neon-button" onClick={onCreate}>
+      <div className="project-create-box">
+        <input
+          value={newProjectName}
+          onChange={(e) => onNewProjectNameChange(e.target.value)}
+          placeholder="Project name..."
+          className="project-create-input"
+          onKeyDown={(e) => {
+            if (e.key === "Enter") onCreate();
+          }}
+        />
+        <button className="neon-button" onClick={onCreate} type="button">
           + New
         </button>
       </div>
@@ -53,7 +65,7 @@ export default function ProjectList({
                 <span className="project-dot" />
                 <div className="project-meta">
                   <span className="project-name">{project.name}</span>
-                  <span className="project-subtitle">Open project chat</span>
+                  <span className="project-subtitle">{project.id}</span>
                 </div>
               </button>
 

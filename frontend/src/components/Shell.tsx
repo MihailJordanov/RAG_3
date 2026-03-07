@@ -1,66 +1,77 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { api } from "@/lib/api";
 import ProjectList from "./ProjectList";
 import ChatWindow from "./ChatWindow";
 import UploadCard from "./UploadCard";
 import SourcesPanel from "./SourcesPanel";
-import { api } from "@/lib/api";
-
-type Project = {
-  id: string;
-  name: string;
-};
-
-type Message = {
-  id: string;
-  role: "user" | "assistant";
-  content: string;
-};
+import type { Project, ChatMessage } from "@/lib/types";
 
 export default function Shell() {
   const [projects, setProjects] = useState<Project[]>([]);
   const [activeProjectId, setActiveProjectId] = useState<string>("");
-  const [isGenerating, setIsGenerating] = useState(false);
+  const [newProjectName, setNewProjectName] = useState("");
   const [busyId, setBusyId] = useState<string | null>(null);
 
-  const [messagesByProject, setMessagesByProject] = useState<
-    Record<string, Message[]>
-  >({});
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [isLoadingMessages, setIsLoadingMessages] = useState(false);
+  const [isGenerating, setIsGenerating] = useState(false);
 
-  async function load() {
+  async function loadProjects() {
     const data = await api.listProjects();
     setProjects(data);
 
-    if (!activeProjectId && data.length > 0) {
-      setActiveProjectId(data[0].id);
-    }
-
-    if (activeProjectId && !data.find((p) => p.id === activeProjectId)) {
-      setActiveProjectId(data[0]?.id ?? "");
-    }
+    setActiveProjectId((current) => {
+      if (current && data.some((p) => p.id === current)) return current;
+      return data[0]?.id ?? "";
+    });
   }
 
   useEffect(() => {
-    load().catch(console.error);
+    loadProjects().catch(console.error);
   }, []);
+
+  useEffect(() => {
+    if (!activeProjectId) {
+      setMessages([]);
+      return;
+    }
+
+    async function loadMessages() {
+      try {
+        setIsLoadingMessages(true);
+        const data = await api.listMessages(activeProjectId);
+        setMessages(data);
+      } catch (err) {
+        console.error(err);
+        setMessages([]);
+      } finally {
+        setIsLoadingMessages(false);
+      }
+    }
+
+    loadMessages().catch(console.error);
+  }, [activeProjectId]);
 
   const activeProject = useMemo(
     () => projects.find((p) => p.id === activeProjectId) ?? null,
     [projects, activeProjectId]
   );
 
-  const activeMessages = activeProject
-    ? messagesByProject[activeProject.id] ?? []
-    : [];
-
   async function handleCreateProject() {
-    const name = prompt("Project name:");
-    const trimmed = name?.trim();
-    if (!trimmed) return;
+    const name = newProjectName.trim();
+    if (!name) return;
 
-    await api.createProject(trimmed);
-    await load();
+    try {
+      const created = await api.createProject(name);
+      setNewProjectName("");
+      await loadProjects();
+      setActiveProjectId(created.id);
+    } catch (err) {
+      console.error(err);
+      alert("Failed to create project.");
+    }
   }
 
   async function handleDeleteProject(projectId: string) {
@@ -79,12 +90,12 @@ export default function Shell() {
       setBusyId(projectId);
       await api.deleteProject(projectId);
 
+      const remaining = projects.filter((p) => p.id !== projectId);
       if (activeProjectId === projectId) {
-        const remaining = projects.filter((p) => p.id !== projectId);
         setActiveProjectId(remaining[0]?.id ?? "");
       }
 
-      await load();
+      await loadProjects();
     } catch (e) {
       console.error(e);
       alert("Failed to delete project. Check backend logs.");
@@ -94,36 +105,52 @@ export default function Shell() {
   }
 
   async function handleSendMessage(text: string) {
-    if (!activeProject) return;
+    if (!activeProjectId) return;
 
-    const userMessage: Message = {
-      id: crypto.randomUUID(),
+    const optimisticUserMessage: ChatMessage = {
       role: "user",
       content: text,
     };
 
-    setMessagesByProject((prev) => ({
-      ...prev,
-      [activeProject.id]: [...(prev[activeProject.id] ?? []), userMessage],
-    }));
-
+    setMessages((prev) => [...prev, optimisticUserMessage]);
     setIsGenerating(true);
 
-    setTimeout(() => {
-      const assistantMessage: Message = {
-        id: crypto.randomUUID(),
+    try {
+      const response = await api.chat(activeProjectId, text);
+
+      const assistantMessage: ChatMessage = {
         role: "assistant",
-        content:
-          "This is a placeholder assistant response. Next step is connecting this UI to your backend chat endpoint.",
+        content: response.answer,
       };
 
-      setMessagesByProject((prev) => ({
-        ...prev,
-        [activeProject.id]: [...(prev[activeProject.id] ?? []), assistantMessage],
-      }));
+      setMessages((prev) => [...prev, assistantMessage]);
+    } catch (err) {
+      console.error(err);
 
+      const assistantError: ChatMessage = {
+        role: "assistant",
+        content: "Failed to get response from backend.",
+      };
+
+      setMessages((prev) => [...prev, assistantError]);
+    } finally {
       setIsGenerating(false);
-    }, 1800);
+    }
+  }
+
+  async function handleUpload(file: File) {
+    if (!activeProjectId) {
+      alert("Please select a project first.");
+      return;
+    }
+
+    try {
+      await api.ingestPdf(activeProjectId, file);
+      alert(`Uploaded: ${file.name}`);
+    } catch (err) {
+      console.error(err);
+      alert("Failed to upload file.");
+    }
   }
 
   return (
@@ -137,6 +164,8 @@ export default function Shell() {
             projects={projects}
             activeProjectId={activeProjectId}
             busyId={busyId}
+            newProjectName={newProjectName}
+            onNewProjectNameChange={setNewProjectName}
             onSelect={setActiveProjectId}
             onCreate={handleCreateProject}
             onDelete={handleDeleteProject}
@@ -146,14 +175,17 @@ export default function Shell() {
         <section className="panel chat-panel">
           <ChatWindow
             projectName={activeProject?.name ?? "No project selected"}
-            messages={activeMessages}
-            isGenerating={isGenerating}
+            messages={messages}
+            isGenerating={isGenerating || isLoadingMessages}
             onSend={handleSendMessage}
           />
         </section>
 
         <aside className="panel right-panel">
-          <UploadCard projectName={activeProject?.name ?? null} />
+          <UploadCard
+            projectName={activeProject?.name ?? null}
+            onUpload={handleUpload}
+          />
           <SourcesPanel />
         </aside>
       </section>

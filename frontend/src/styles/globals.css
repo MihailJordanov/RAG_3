@@ -1112,6 +1112,129 @@ button {
 }
 
 
+.upload-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.upload-limit-pills {
+  margin-top: 12px;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+}
+
+.upload-limit-pill {
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  color: rgba(230, 245, 255, 0.78);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.limit-progress-group {
+  width: 100%;
+  margin-top: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.limit-progress-label {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.8rem;
+  color: rgba(220, 235, 255, 0.72);
+}
+
+.limit-progress-meta {
+  font-size: 0.78rem;
+  color: rgba(220, 235, 255, 0.58);
+  margin-top: -2px;
+  margin-bottom: 2px;
+}
+
+.limit-progress-bar {
+  width: 100%;
+  height: 8px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  overflow: hidden;
+}
+
+.limit-progress-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #00ffb7, #4fd8ff);
+  transition: width 0.25s ease;
+}
+
+.upload-status-card {
+  width: 100%;
+  margin-top: 18px;
+  padding: 14px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.upload-status-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.upload-file-name {
+  max-width: 70%;
+  font-size: 0.92rem;
+  color: #f4fffd;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.upload-phase-label {
+  font-size: 0.85rem;
+  color: #00ffb7;
+  font-weight: 600;
+}
+
+.upload-progress-bar {
+  width: 100%;
+  height: 10px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  overflow: hidden;
+  margin-bottom: 10px;
+}
+
+.upload-progress-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #00ffb7, #4fd8ff);
+  transition: width 0.25s ease;
+  box-shadow: 0 0 16px rgba(0, 255, 183, 0.22);
+}
+
+.upload-status-message {
+  font-size: 0.86rem;
+  color: rgba(220, 235, 255, 0.72);
+}
+
+.upload-status-message.success {
+  color: #7dffbf;
+}
+
+.upload-status-message.error {
+  color: #ff8f8f;
+}
+
+
 @keyframes fadeSlideDown {
   from {
     opacity: 0;

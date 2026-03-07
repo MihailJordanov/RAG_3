@@ -1,5 +1,7 @@
 "use client";
 
+import type { ProjectSource } from "@/lib/types";
+
 type UploadState = {
   fileName: string;
   phase: "idle" | "uploading" | "processing" | "done" | "error";
@@ -10,10 +12,25 @@ type UploadState = {
 type Props = {
   projectName: string | null;
   uploadState: UploadState | null;
+  sources: ProjectSource[];
   onUpload: (file: File) => void | Promise<void>;
 };
 
-export default function UploadCard({ projectName, uploadState, onUpload }: Props) {
+const MAX_FILES_PER_PROJECT = 10;
+const MAX_FILE_SIZE_MB = 10;
+const MAX_TOTAL_PROJECT_SIZE_MB = 25;
+const MAX_TOTAL_PROJECT_SIZE_BYTES = MAX_TOTAL_PROJECT_SIZE_MB * 1024 * 1024;
+
+function formatMb(bytes: number) {
+  return (bytes / (1024 * 1024)).toFixed(1);
+}
+
+export default function UploadCard({
+  projectName,
+  uploadState,
+  sources,
+  onUpload,
+}: Props) {
   async function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -24,6 +41,28 @@ export default function UploadCard({ projectName, uploadState, onUpload }: Props
 
   const isBusy =
     uploadState?.phase === "uploading" || uploadState?.phase === "processing";
+
+  const fileCount = sources.length;
+  const totalBytes = sources.reduce(
+    (sum, source) => sum + (source.size_bytes ?? 0),
+    0
+  );
+
+  const filesPercent = Math.min(
+    (fileCount / MAX_FILES_PER_PROJECT) * 100,
+    100
+  );
+
+  const storagePercent = Math.min(
+    (totalBytes / MAX_TOTAL_PROJECT_SIZE_BYTES) * 100,
+    100
+  );
+
+  const remainingFiles = Math.max(MAX_FILES_PER_PROJECT - fileCount, 0);
+  const remainingMb = Math.max(
+    MAX_TOTAL_PROJECT_SIZE_MB - Number(formatMb(totalBytes)),
+    0
+  );
 
   return (
     <div className="right-card upload-card">
@@ -41,11 +80,62 @@ export default function UploadCard({ projectName, uploadState, onUpload }: Props
           {projectName ? `Drop files into ${projectName}` : "Select a project first"}
         </p>
 
-        <p className="upload-subtitle">
-          PDF and supported sources
-        </p>
+        <p className="upload-subtitle">PDF documents for your knowledge base</p>
 
-        <label htmlFor="file-upload" className="neon-button secondary-button upload-button">
+        <div className="upload-limit-pills">
+          <span className="upload-limit-pill">
+            {MAX_FILES_PER_PROJECT} files max
+          </span>
+          <span className="upload-limit-pill">
+            {MAX_FILE_SIZE_MB} MB / file
+          </span>
+          <span className="upload-limit-pill">
+            {MAX_TOTAL_PROJECT_SIZE_MB} MB / project
+          </span>
+        </div>
+
+        {!!projectName && (
+          <div className="limit-progress-group">
+            <div className="limit-progress-label">
+              <span>Files used</span>
+              <span>
+                {fileCount}/{MAX_FILES_PER_PROJECT}
+              </span>
+            </div>
+            <div className="limit-progress-bar">
+              <div
+                className="limit-progress-fill"
+                style={{ width: `${filesPercent}%` }}
+              />
+            </div>
+
+            <div className="limit-progress-meta">
+              <span>{remainingFiles} file(s) remaining</span>
+            </div>
+
+            <div className="limit-progress-label">
+              <span>Storage used</span>
+              <span>
+                {formatMb(totalBytes)}/{MAX_TOTAL_PROJECT_SIZE_MB} MB
+              </span>
+            </div>
+            <div className="limit-progress-bar">
+              <div
+                className="limit-progress-fill"
+                style={{ width: `${storagePercent}%` }}
+              />
+            </div>
+
+            <div className="limit-progress-meta">
+              <span>{remainingMb.toFixed(1)} MB remaining</span>
+            </div>
+          </div>
+        )}
+
+        <label
+          htmlFor="file-upload"
+          className="neon-button secondary-button upload-button"
+        >
           Choose File
         </label>
 
@@ -92,7 +182,7 @@ export default function UploadCard({ projectName, uploadState, onUpload }: Props
 
             {uploadState.phase === "done" && (
               <div className="upload-status-message success">
-                File uploaded and indexed successfully.
+                {uploadState.message || "File uploaded and indexed successfully."}
               </div>
             )}
 

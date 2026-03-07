@@ -20,6 +20,13 @@ export default function Shell() {
   const [sources, setSources] = useState<ProjectSource[]>([]);
   const [isLoadingSources, setIsLoadingSources] = useState(false);
 
+  const [uploadState, setUploadState] = useState<{
+    fileName: string;
+    phase: "idle" | "uploading" | "processing" | "done" | "error";
+    progress: number;
+    message?: string;
+  } | null>(null);
+
   async function loadProjects() {
     const data = await api.listProjects();
     setProjects(data);
@@ -164,19 +171,106 @@ export default function Shell() {
     }
   }
 
+  async function pollIngestJob(jobId: string, fileName: string) {
+    let done = false;
+
+    while (!done) {
+        const status = await api.getIngestJobStatus(jobId);
+
+        if (status.status === "queued" || status.status === "running") {
+        setUploadState({
+            fileName,
+            phase: "processing",
+            progress:
+            typeof status.progress === "number"
+                ? status.progress
+                : status.status === "queued"
+                ? 15
+                : 65,
+            message: status.message ?? "Processing document...",
+        });
+        }
+
+        if (status.status === "succeeded") {
+        setUploadState({
+            fileName,
+            phase: "done",
+            progress: 100,
+            message: "File uploaded and indexed successfully.",
+        });
+
+        await loadSources(activeProjectId);
+        done = true;
+        break;
+        }
+
+        if (status.status === "failed" || status.status === "not_found") {
+        setUploadState({
+            fileName,
+            phase: "error",
+            progress: 0,
+            message:
+            status.error ??
+            status.message ??
+            "Document processing failed.",
+        });
+        done = true;
+        break;
+        }
+
+        await new Promise((resolve) => setTimeout(resolve, 1200));
+    }
+  }
+
   async function handleUpload(file: File) {
     if (!activeProjectId) {
-      alert("Please select a project first.");
-      return;
+        alert("Please select a project first.");
+        return;
     }
 
+    setUploadState({
+        fileName: file.name,
+        phase: "uploading",
+        progress: 0,
+    });
+
     try {
-      await api.ingestPdf(activeProjectId, file);
-      await loadSources(activeProjectId);
-      alert(`Uploaded: ${file.name}`);
+      const result = await api.ingestPdfWithProgress(activeProjectId, file, (progress) => {
+        setUploadState({
+            fileName: file.name,
+            phase: "uploading",
+            progress,
+        });
+      });
+
+        // Ако backend връща job_id за обработка
+        if (result?.job_id) {
+        setUploadState({
+            fileName: file.name,
+            phase: "processing",
+            progress: 15,
+            message: "Queued for processing...",
+        });
+
+        await pollIngestJob(result.job_id, file.name);
+        } else {
+        // fallback ако backend връща успех директно
+        setUploadState({
+            fileName: file.name,
+            phase: "done",
+            progress: 100,
+        });
+
+        await loadSources(activeProjectId);
+        }
     } catch (err) {
-      console.error(err);
-      alert("Failed to upload file.");
+        console.error(err);
+        setUploadState({
+        fileName: file.name,
+        phase: "error",
+        progress: 0,
+        message: "Failed to upload file.",
+        });
     }
   }
 
@@ -218,6 +312,7 @@ export default function Shell() {
             <>
               <UploadCard
                 projectName={activeProject?.name ?? null}
+                uploadState={uploadState}
                 onUpload={handleUpload}
               />
               <SourcesPanel

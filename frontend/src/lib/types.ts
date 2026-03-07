@@ -9,6 +9,7 @@ export type Job = {
   project_id?: string;
   status: "queued" | "running" | "succeeded" | "failed" | "not_found" | string;
   progress?: number;
+  message?: string;
   error?: string | null;
 };
 

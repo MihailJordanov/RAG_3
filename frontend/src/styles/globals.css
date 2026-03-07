@@ -455,8 +455,139 @@ button {
   box-shadow: 0 0 18px rgba(168, 85, 247, 0.2);
 }
 
+.project-create-box {
+  margin: 18px 0 20px;
+  display: flex;
+  justify-content: center;
+}
+
+.create-project-trigger {
+  width: 100%;
+  max-width: 220px;
+}
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(3, 8, 20, 0.72);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 999;
+  animation: fadeIn 0.22s ease;
+}
+
+.create-project-modal {
+  position: relative;
+  width: min(92vw, 460px);
+  border-radius: 24px;
+  padding: 2px;
+  background: linear-gradient(
+    135deg,
+    rgba(0, 255, 183, 0.55),
+    rgba(0, 153, 255, 0.35),
+    rgba(255, 255, 255, 0.08)
+  );
+  box-shadow:
+    0 0 30px rgba(0, 255, 183, 0.18),
+    0 20px 60px rgba(0, 0, 0, 0.45);
+  animation: scaleIn 0.22s ease;
+}
+
+.create-project-modal-content {
+  background: linear-gradient(180deg, rgba(10, 16, 30, 0.98), rgba(8, 12, 24, 0.96));
+  border-radius: 22px;
+  padding: 28px 24px 22px;
+}
+
+.modal-close-btn {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 38px;
+  height: 38px;
+  border: none;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.06);
+  color: #dffef5;
+  font-size: 18px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.modal-close-btn:hover {
+  background: rgba(0, 255, 183, 0.14);
+  color: #00ffb7;
+  transform: rotate(90deg) scale(1.05);
+}
+
+.create-project-title {
+  margin: 6px 0 10px;
+  font-size: 1.6rem;
+  line-height: 1.2;
+}
+
+.create-project-subtitle {
+  margin: 0 0 18px;
+  color: rgba(220, 235, 255, 0.72);
+  font-size: 0.95rem;
+}
+
+.project-modal-input {
+  width: 100%;
+  height: 52px;
+  border-radius: 16px;
+  border: 1px solid rgba(0, 255, 183, 0.18);
+  background: rgba(255, 255, 255, 0.05);
+  color: #f4fffd;
+  padding: 0 16px;
+  font-size: 1rem;
+  outline: none;
+  transition: all 0.2s ease;
+  box-sizing: border-box;
+}
+
+.project-modal-input::placeholder {
+  color: rgba(220, 235, 255, 0.38);
+}
+
+.project-modal-input:focus {
+  border-color: rgba(0, 255, 183, 0.8);
+  box-shadow: 0 0 0 4px rgba(0, 255, 183, 0.12);
+  background: rgba(255, 255, 255, 0.07);
+}
+
+.create-project-actions {
+  display: flex;
+  justify-content: center;
+  margin-top: 22px;
+}
+
+.create-project-btn {
+  min-width: 140px;
+}
+
 .secondary-button {
-  background: rgba(255, 255, 255, 0.03);
+  height: 46px;
+  padding: 0 18px;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.05);
+  color: #e8f6ff;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.secondary-button:hover {
+  background: rgba(255, 255, 255, 0.09);
+  transform: translateY(-1px);
+}
+
+.neon-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
 }
 
 .right-panel {
@@ -684,6 +815,27 @@ button {
 .custom-scroll::-webkit-scrollbar-thumb:hover {
   background: rgba(168, 85, 247, 0.38);
 }
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
 
 @keyframes typingBounce {
   0%,

@@ -1,6 +1,7 @@
 "use client";
 
 import type { Project } from "@/lib/types";
+import CreateProjectForm from "./CreateProjectForm";
 
 type Props = {
   projects: Project[];
@@ -33,18 +34,11 @@ export default function ProjectList({
       </div>
 
       <div className="project-create-box">
-        <input
-          value={newProjectName}
-          onChange={(e) => onNewProjectNameChange(e.target.value)}
-          placeholder="Project name..."
-          className="project-create-input"
-          onKeyDown={(e) => {
-            if (e.key === "Enter") onCreate();
-          }}
+        <CreateProjectForm
+          newProjectName={newProjectName}
+          onNewProjectNameChange={onNewProjectNameChange}
+          onCreate={onCreate}
         />
-        <button className="neon-button" onClick={onCreate} type="button">
-          + New
-        </button>
       </div>
 
       <div className="project-list custom-scroll">

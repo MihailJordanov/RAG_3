@@ -21,6 +21,7 @@ def _set_job_status(
     status: str,
     progress: int | None = None,
     error: str | None = None,
+    message: str | None = None,
 ) -> None:
     job = db.query(Job).filter(Job.id == job_id).first()
     if not job:
@@ -29,18 +30,38 @@ def _set_job_status(
     if progress is not None:
         job.progress = progress
     job.error = error
+    if message is not None:
+        job.message = message
     db.commit()
 
 
 def ingest_pdf_task(project_id: str, pdf_path: str, job_id: str) -> dict:
     db = SessionLocal()
     try:
-        _set_job_status(db, job_id, "running", progress=5)
-        result = ingest_pdf_to_project(project_id, pdf_path)
-        _set_job_status(db, job_id, "succeeded", progress=100)
+        _set_job_status(db, job_id, "running", progress=5, message="Queued for processing...")
+
+        def progress_cb(progress: int, message: str) -> None:
+            _set_job_status(db, job_id, "running", progress=progress, message=message)
+
+        result = ingest_pdf_to_project(project_id, pdf_path, progress_cb=progress_cb)
+
+        _set_job_status(
+            db,
+            job_id,
+            "succeeded",
+            progress=100,
+            message="File uploaded and indexed successfully.",
+        )
         return result
     except Exception as e:
-        _set_job_status(db, job_id, "failed", progress=0, error=str(e))
+        _set_job_status(
+            db,
+            job_id,
+            "failed",
+            progress=0,
+            error=str(e),
+            message="Document processing failed.",
+        )
         raise
     finally:
         db.close()

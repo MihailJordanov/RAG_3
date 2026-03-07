@@ -24,5 +24,6 @@ class Job(Base):
     type: Mapped[str] = mapped_column(String, nullable=False)  # "ingest"
     status: Mapped[str] = mapped_column(String, nullable=False)  # queued/running/succeeded/failed
     progress: Mapped[int] = mapped_column(Integer, default=0)
+    message: Mapped[str | None] = mapped_column(Text, nullable=True)
     error: Mapped[str | None] = mapped_column(Text, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)

@@ -1,7 +1,7 @@
 import json
 import os
 import hashlib
-from typing import List
+from typing import List, Callable
 
 from langchain_chroma import Chroma
 from langchain_core.documents import Document
@@ -197,14 +197,29 @@ def create_vector_store(documents: list[Document], persist_directory: str) -> Ch
     )
 
 
-def ingest_pdf_to_project(project_id: str, pdf_path: str) -> dict:
+def ingest_pdf_to_project(
+    project_id: str,
+    pdf_path: str,
+    progress_cb: Callable[[int, str], None] | None = None,
+) -> dict:
+    def update_progress(value: int, message: str) -> None:
+        if progress_cb:
+            progress_cb(value, message)
+
+    update_progress(10, "Reading PDF structure...")
     elements = partition_document(pdf_path)
+
+    update_progress(25, "Extracting text...")
     raw_text = _elements_to_text(elements)
 
+    update_progress(40, "Creating chunks...")
     chunks = create_chunks_by_title(elements)
+
+    update_progress(55, "Preparing document chunks...")
     docs: list[Document] = summarise_chunks(project_id, chunks) if chunks else []
 
     if not docs:
+        update_progress(60, "Using fallback chunking...")
         text_chunks = _fallback_chunk_text(raw_text)
         if not text_chunks:
             raise RuntimeError(
@@ -224,11 +239,14 @@ def ingest_pdf_to_project(project_id: str, pdf_path: str) -> dict:
         docs = fallback_docs
 
     persist_dir = project_chroma_dir(project_id)
+
+    update_progress(75, "Building vector store...")
     _ = create_vector_store(docs, persist_directory=persist_dir)
 
+    update_progress(90, "Building BM25 index...")
     bm25_index = build_bm25_index(docs)
     bm25_path = save_bm25(bm25_index, persist_dir=persist_dir)
 
+    update_progress(98, "Finalizing...")
+
     return {"persist_dir": persist_dir, "chunks": len(docs)}
-
-

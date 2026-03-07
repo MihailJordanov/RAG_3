@@ -3,6 +3,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from app.db.session import get_db
 from app.db.models import Project, Message, Job
+from app.services.storage import delete_project_storage
 
 router = APIRouter(prefix="/projects", tags=["projects"])
 
@@ -34,5 +35,6 @@ def delete_project(project_id: str, db: Session = Depends(get_db)):
 
     db.delete(project)
     db.commit()
+    delete_project_storage(project_id)
 
     return {"status": "deleted"}

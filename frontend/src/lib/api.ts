@@ -1,4 +1,4 @@
-import { Project, Job, ChatMessage, ChatResponse } from "./types";
+import { Project, Job, ChatMessage, ChatResponse, ProjectSource } from "./types";
 
 const BASE = process.env.NEXT_PUBLIC_API_BASE_URL!;
 
@@ -56,4 +56,8 @@ export const api = {
   // history
   listMessages: (projectId: string) =>
     http<ChatMessage[]>(`/projects/${projectId}/messages`),
+
+  // sources
+  listSources: (projectId: string) =>
+    http<ProjectSource[]>(`/projects/${projectId}/sources`),
 };

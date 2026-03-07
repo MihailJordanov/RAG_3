@@ -34,3 +34,27 @@ async def ingest_file(project_id: str, file: UploadFile = File(...), db: Session
     rq_job = queue.enqueue(ingest_pdf_task, project_id, saved_path, job_id, job_id=job_id)
 
     return {"job_id": rq_job.id, "status": "queued", "file": file.filename}
+
+
+@router.get("/{project_id}/sources")
+def list_project_sources(project_id: str):
+    ensure_dirs()
+
+    upload_dir = project_upload_dir(project_id)
+
+    if not os.path.exists(upload_dir):
+        return []
+
+    files = []
+    for name in os.listdir(upload_dir):
+        full_path = os.path.join(upload_dir, name)
+        if os.path.isfile(full_path):
+            files.append(
+                {
+                    "name": name,
+                    "status": "Uploaded",
+                }
+            )
+
+    files.sort(key=lambda x: x["name"].lower())
+    return files

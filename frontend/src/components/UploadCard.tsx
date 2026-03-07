@@ -32,13 +32,13 @@ export default function UploadCard({ projectName, onUpload }: Props) {
 
         <label className="neon-button secondary-button" style={{ display: "inline-block" }}>
           Choose File
-          <input
+            <input
             type="file"
-            accept=".pdf,.doc,.docx,.txt,.md"
+            accept=".pdf,application/pdf"
             onChange={handleFileChange}
             style={{ display: "none" }}
             disabled={!projectName}
-          />
+            />
         </label>
       </div>
     </div>

@@ -6,7 +6,7 @@ import ProjectList from "./ProjectList";
 import ChatWindow from "./ChatWindow";
 import UploadCard from "./UploadCard";
 import SourcesPanel from "./SourcesPanel";
-import type { Project, ChatMessage } from "@/lib/types";
+import type { Project, ChatMessage, ProjectSource  } from "@/lib/types";
 
 export default function Shell() {
   const [projects, setProjects] = useState<Project[]>([]);
@@ -17,6 +17,8 @@ export default function Shell() {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [isLoadingMessages, setIsLoadingMessages] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [sources, setSources] = useState<ProjectSource[]>([]);
+  const [isLoadingSources, setIsLoadingSources] = useState(false);
 
   async function loadProjects() {
     const data = await api.listProjects();
@@ -32,6 +34,15 @@ export default function Shell() {
     loadProjects().catch(console.error);
   }, []);
 
+  useEffect(() => {
+    if (!activeProjectId) {
+      setSources([]);
+      return;
+    }
+
+    loadSources(activeProjectId).catch(console.error);
+  }, [activeProjectId]);
+  
   useEffect(() => {
     if (!activeProjectId) {
       setMessages([]);
@@ -138,6 +149,19 @@ export default function Shell() {
     }
   }
 
+  async function loadSources(projectId: string) {
+    try {
+      setIsLoadingSources(true);
+      const data = await api.listSources(projectId);
+      setSources(data);
+    } catch (err) {
+      console.error(err);
+      setSources([]);
+    } finally {
+      setIsLoadingSources(false);
+    }
+  }
+
   async function handleUpload(file: File) {
     if (!activeProjectId) {
       alert("Please select a project first.");
@@ -146,6 +170,7 @@ export default function Shell() {
 
     try {
       await api.ingestPdf(activeProjectId, file);
+      await loadSources(activeProjectId);
       alert(`Uploaded: ${file.name}`);
     } catch (err) {
       console.error(err);
@@ -186,7 +211,11 @@ export default function Shell() {
             projectName={activeProject?.name ?? null}
             onUpload={handleUpload}
           />
-          <SourcesPanel />
+          <SourcesPanel
+            projectName={activeProject?.name ?? null}
+            sources={sources}
+            isLoading={isLoadingSources}
+            />
         </aside>
       </section>
     </main>

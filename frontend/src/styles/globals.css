@@ -566,6 +566,31 @@ button {
   font-size: 0.92rem;
 }
 
+.sources-empty-state {
+  min-height: 180px;
+  border: 1px dashed rgba(196, 132, 252, 0.18);
+  border-radius: 18px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 24px 18px;
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.source-empty-title {
+  font-weight: 600;
+  color: var(--text);
+}
+
+.source-empty-subtitle {
+  margin-top: 8px;
+  color: var(--text-dim);
+  font-size: 0.92rem;
+  max-width: 260px;
+}
+
 .sources-list {
   display: flex;
   flex-direction: column;

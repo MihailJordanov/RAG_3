@@ -24,3 +24,7 @@ export type ChatResponse = {
   sources: Array<{ score: number; preview?: string }>;
 };
 
+export type ProjectSource = {
+  name: string;
+  status?: string;
+};

@@ -1,6 +1,6 @@
 "use client";
 
-import type { ProjectSource } from "@/lib/types";
+import type { ProjectSource, ProjectLimits } from "@/lib/types";
 
 type UploadState = {
   fileName: string;
@@ -13,13 +13,9 @@ type Props = {
   projectName: string | null;
   uploadState: UploadState | null;
   sources: ProjectSource[];
+  limits: ProjectLimits | null;
   onUpload: (file: File) => void | Promise<void>;
 };
-
-const MAX_FILES_PER_PROJECT = 10;
-const MAX_FILE_SIZE_MB = 10;
-const MAX_TOTAL_PROJECT_SIZE_MB = 25;
-const MAX_TOTAL_PROJECT_SIZE_BYTES = MAX_TOTAL_PROJECT_SIZE_MB * 1024 * 1024;
 
 function formatMb(bytes: number) {
   return (bytes / (1024 * 1024)).toFixed(1);
@@ -29,6 +25,7 @@ export default function UploadCard({
   projectName,
   uploadState,
   sources,
+  limits,
   onUpload,
 }: Props) {
   async function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
@@ -42,27 +39,29 @@ export default function UploadCard({
   const isBusy =
     uploadState?.phase === "uploading" || uploadState?.phase === "processing";
 
-  const fileCount = sources.length;
-  const totalBytes = sources.reduce(
-    (sum, source) => sum + (source.size_bytes ?? 0),
-    0
-  );
+  const maxFiles = limits?.max_files_per_project ?? 0;
+  const maxFileSizeMb = limits?.max_file_size_mb ?? 0;
+  const maxTotalProjectSizeMb = limits?.max_total_project_size_mb ?? 0;
+  const maxTotalProjectSizeBytes = limits?.max_total_project_size_bytes ?? 0;
 
-  const filesPercent = Math.min(
-    (fileCount / MAX_FILES_PER_PROJECT) * 100,
-    100
-  );
+  const fileCount = limits?.current_file_count ?? sources.length;
+  const totalBytes =
+    limits?.current_total_size_bytes ??
+    sources.reduce((sum, source) => sum + (source.size_bytes ?? 0), 0);
 
-  const storagePercent = Math.min(
-    (totalBytes / MAX_TOTAL_PROJECT_SIZE_BYTES) * 100,
-    100
-  );
+  const filesPercent =
+    maxFiles > 0 ? Math.min((fileCount / maxFiles) * 100, 100) : 0;
 
-  const remainingFiles = Math.max(MAX_FILES_PER_PROJECT - fileCount, 0);
-  const remainingMb = Math.max(
-    MAX_TOTAL_PROJECT_SIZE_MB - Number(formatMb(totalBytes)),
-    0
-  );
+  const storagePercent =
+    maxTotalProjectSizeBytes > 0
+      ? Math.min((totalBytes / maxTotalProjectSizeBytes) * 100, 100)
+      : 0;
+
+  const remainingFiles = limits?.remaining_file_slots ?? 0;
+  const remainingMb =
+    limits?.remaining_total_size_bytes != null
+      ? Number(formatMb(limits.remaining_total_size_bytes))
+      : 0;
 
   return (
     <div className="right-card upload-card">
@@ -83,14 +82,10 @@ export default function UploadCard({
         <p className="upload-subtitle">PDF documents for your knowledge base</p>
 
         <div className="upload-limit-pills">
+          <span className="upload-limit-pill">{maxFiles} files max</span>
+          <span className="upload-limit-pill">{maxFileSizeMb} MB / file</span>
           <span className="upload-limit-pill">
-            {MAX_FILES_PER_PROJECT} files max
-          </span>
-          <span className="upload-limit-pill">
-            {MAX_FILE_SIZE_MB} MB / file
-          </span>
-          <span className="upload-limit-pill">
-            {MAX_TOTAL_PROJECT_SIZE_MB} MB / project
+            {maxTotalProjectSizeMb} MB / project
           </span>
         </div>
 
@@ -99,7 +94,7 @@ export default function UploadCard({
             <div className="limit-progress-label">
               <span>Files used</span>
               <span>
-                {fileCount}/{MAX_FILES_PER_PROJECT}
+                {fileCount}/{maxFiles}
               </span>
             </div>
             <div className="limit-progress-bar">
@@ -116,7 +111,7 @@ export default function UploadCard({
             <div className="limit-progress-label">
               <span>Storage used</span>
               <span>
-                {formatMb(totalBytes)}/{MAX_TOTAL_PROJECT_SIZE_MB} MB
+                {formatMb(totalBytes)}/{maxTotalProjectSizeMb} MB
               </span>
             </div>
             <div className="limit-progress-bar">
@@ -155,8 +150,9 @@ export default function UploadCard({
                 {uploadState.fileName}
               </span>
               <span className="upload-phase-label">
-                {uploadState.phase === "uploading" && `${uploadState.progress}%`}
-                {uploadState.phase === "processing" && `${uploadState.progress}%`}
+                {(uploadState.phase === "uploading" ||
+                  uploadState.phase === "processing") &&
+                  `${uploadState.progress}%`}
                 {uploadState.phase === "done" && "Ready"}
                 {uploadState.phase === "error" && "Failed"}
               </span>

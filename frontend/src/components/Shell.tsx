@@ -6,10 +6,11 @@ import ProjectList from "./ProjectList";
 import ChatWindow from "./ChatWindow";
 import UploadCard from "./UploadCard";
 import SourcesPanel from "./SourcesPanel";
-import type { Project, ChatMessage, ProjectSource } from "@/lib/types";
+import type { Project, ChatMessage, ProjectSource, ProjectLimits } from "@/lib/types";
 
 export default function Shell() {
   const [projects, setProjects] = useState<Project[]>([]);
+  const [projectLimits, setProjectLimits] = useState<ProjectLimits | null>(null);
   const [activeProjectId, setActiveProjectId] = useState<string>("");
   const [newProjectName, setNewProjectName] = useState("");
   const [busyId, setBusyId] = useState<string | null>(null);
@@ -26,6 +27,17 @@ export default function Shell() {
     progress: number;
     message?: string;
   } | null>(null);
+
+
+  async function loadProjectLimits(projectId: string) {
+    try {
+        const data = await api.getProjectLimits(projectId);
+        setProjectLimits(data);
+    } catch (err) {
+        console.error(err);
+        setProjectLimits(null);
+    }
+  }
 
   async function loadProjects() {
     const data = await api.listProjects();
@@ -50,6 +62,7 @@ export default function Shell() {
     }
 
     loadSources(activeProjectId).catch(console.error);
+    loadProjectLimits(activeProjectId).catch(console.error);
   }, [activeProjectId]);    
 
   useEffect(() => {
@@ -202,6 +215,7 @@ export default function Shell() {
         });
 
         await loadSources(projectId);
+        await loadProjectLimits(projectId);
         done = true;
         break;
         }
@@ -269,6 +283,7 @@ export default function Shell() {
         });
 
         await loadSources(activeProjectId);
+        await loadProjectLimits(activeProjectId);
         }
     } catch (err) {
         console.error(err);
@@ -321,7 +336,8 @@ export default function Shell() {
                 projectName={activeProject?.name ?? null}
                 uploadState={uploadState}
                 sources={sources}
-                onUpload={handleUpload}
+                limits={projectLimits}
+                onUpload={handleUpload}  
               />
               <SourcesPanel
                 projectName={activeProject?.name ?? null}

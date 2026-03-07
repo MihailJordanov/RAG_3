@@ -127,7 +127,7 @@ def get_project_limits(project_id: str):
         if os.path.isfile(os.path.join(upload_dir, name))
     ]
 
-    total_size_bytes = sum(
+    current_total_size = sum(
         os.path.getsize(os.path.join(upload_dir, name))
         for name in existing_files
     )
@@ -139,7 +139,7 @@ def get_project_limits(project_id: str):
         "max_file_size_bytes": MAX_FILE_SIZE_BYTES,
         "max_total_project_size_bytes": MAX_TOTAL_PROJECT_SIZE_BYTES,
         "current_file_count": len(existing_files),
-        "current_total_size_bytes": total_size_bytes,
+        "current_total_size_bytes": current_total_size,
         "remaining_file_slots": max(MAX_FILES_PER_PROJECT - len(existing_files), 0),
-        "remaining_total_size_bytes": max(MAX_TOTAL_PROJECT_SIZE_BYTES - total_size_bytes, 0),
+        "remaining_total_size_bytes": max(MAX_TOTAL_PROJECT_SIZE_BYTES - current_total_size, 0),
     }

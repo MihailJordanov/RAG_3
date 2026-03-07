@@ -1,6 +1,61 @@
-import { Project, Job, ChatMessage, ChatResponse, ProjectSource } from "./types";
+import { Project, Job, ChatMessage, ChatResponse, ProjectSource, ProjectLimits  } from "./types";
 
 const BASE = process.env.NEXT_PUBLIC_API_BASE_URL!;
+
+type ApiErrorBody =
+  | { detail?: string | Array<{ msg?: string }> }
+  | Record<string, unknown>;
+
+async function extractErrorMessageFromResponse(res: Response): Promise<string> {
+  try {
+    const data = (await res.json()) as ApiErrorBody;
+
+    if (typeof data?.detail === "string") {
+      return data.detail;
+    }
+
+    if (Array.isArray(data?.detail)) {
+      const messages = data.detail
+        .map((item) => item?.msg)
+        .filter((msg): msg is string => typeof msg === "string" && msg.trim().length > 0);
+
+      if (messages.length > 0) {
+        return messages.join(", ");
+      }
+    }
+
+    return `HTTP ${res.status} ${res.statusText}`;
+  } catch {
+    const text = await res.text().catch(() => "");
+    return text || `HTTP ${res.status} ${res.statusText}`;
+  }
+}
+
+function extractErrorMessageFromXhr(xhr: XMLHttpRequest): string {
+  const fallback = `Upload failed with status ${xhr.status}`;
+
+  try {
+    const data = JSON.parse(xhr.responseText) as ApiErrorBody;
+
+    if (typeof data?.detail === "string") {
+      return data.detail;
+    }
+
+    if (Array.isArray(data?.detail)) {
+      const messages = data.detail
+        .map((item) => item?.msg)
+        .filter((msg): msg is string => typeof msg === "string" && msg.trim().length > 0);
+
+      if (messages.length > 0) {
+        return messages.join(", ");
+      }
+    }
+
+    return fallback;
+  } catch {
+    return xhr.responseText || fallback;
+  }
+}
 
 async function http<T>(path: string, init?: RequestInit): Promise<T> {
   const res = await fetch(`${BASE}${path}`, {
@@ -13,8 +68,8 @@ async function http<T>(path: string, init?: RequestInit): Promise<T> {
   });
 
   if (!res.ok) {
-    const text = await res.text().catch(() => "");
-    throw new Error(`HTTP ${res.status} ${res.statusText}: ${text}`);
+    const message = await extractErrorMessageFromResponse(res);
+    throw new Error(message);
   }
 
   return res.json() as Promise<T>;
@@ -53,7 +108,7 @@ function ingestPdfWithProgress(
           reject(new Error("Invalid JSON response from upload endpoint."));
         }
       } else {
-        reject(new Error(xhr.responseText || `Upload failed with status ${xhr.status}`));
+        reject(new Error(extractErrorMessageFromXhr(xhr)));
       }
     };
 
@@ -91,7 +146,11 @@ export const api = {
       cache: "no-store",
     });
 
-    if (!res.ok) throw new Error(await res.text());
+    if (!res.ok) {
+      const message = await extractErrorMessageFromResponse(res);
+      throw new Error(message);
+    }
+
     return res.json() as Promise<IngestResponse>;
   },
 
@@ -116,4 +175,8 @@ export const api = {
   // sources
   listSources: (projectId: string) =>
     http<ProjectSource[]>(`/projects/${projectId}/sources`),
+
+  // limits
+  getProjectLimits: (projectId: string) =>
+    http<ProjectLimits>(`/projects/${projectId}/limits`),
 };

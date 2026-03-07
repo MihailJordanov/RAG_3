@@ -1,12 +1,16 @@
 import "../styles/globals.css";
-import type { ReactNode } from "react";
+import type { Metadata } from "next";
 
-export const metadata = {
-  title: "RAG Chat",
-  description: "RAG Projects + Ingest + Chat",
+export const metadata: Metadata = {
+  title: "RAG Workspace",
+  description: "Modern RAG chat interface",
 };
 
-export default function RootLayout({ children }: { children: ReactNode }) {
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
     <html lang="en">
       <body>{children}</body>

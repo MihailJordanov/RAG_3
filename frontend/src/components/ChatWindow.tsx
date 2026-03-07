@@ -87,7 +87,7 @@ export default function ChatWindow({
   return (
     <div className="chat-window">
       {isEmptyChat ? (
-        <section className="chat-hero">
+        <section className="chat-hero chat-hero-empty">
           <div className="chat-topbar">
             <div />
             <div className="project-id-tools">
@@ -99,7 +99,7 @@ export default function ChatWindow({
                   setCopied(false);
                 }}
               >
-                {showProjectIdPanel ? "Hide ID" : "Project ID"}
+                {showProjectIdPanel ? "Hide ID" : "ID"}
               </button>
 
               {showProjectIdPanel && projectId && (
@@ -162,7 +162,7 @@ export default function ChatWindow({
                   setCopied(false);
                 }}
               >
-                {showProjectIdPanel ? "Hide ID" : "Project ID"}
+                {showProjectIdPanel ? "Hide ID" : "ID"}
               </button>
 
               {showProjectIdPanel && projectId && (

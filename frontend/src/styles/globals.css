@@ -1038,6 +1038,16 @@ button {
   min-width: 92px;
 }
 
+.chat-hero-empty {
+  position: relative;
+}
+
+.chat-hero-empty .project-id-tools {
+  position: absolute;
+  top: 18px;
+  right: 22px;
+}
+
 @keyframes fadeSlideDown {
   from {
     opacity: 0;

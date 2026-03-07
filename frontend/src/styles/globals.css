@@ -18,7 +18,6 @@
   --radius-lg: 18px;
   --radius-md: 14px;
   --shadow-soft: 0 10px 30px rgba(0, 0, 0, 0.35);
-  color-scheme: dark;
 }
 
 html,
@@ -34,7 +33,6 @@ body {
     linear-gradient(180deg, #06060a 0%, #05050a 100%);
   color: var(--text);
   font-family: "Inter", system-ui, sans-serif;
-  color-scheme: dark;
 }
 
 /* Chrome, Edge, Safari */

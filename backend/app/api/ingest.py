@@ -14,8 +14,8 @@ router = APIRouter(prefix="/projects", tags=["ingest"])
 redis_conn = Redis.from_url(settings.redis_url)
 queue = Queue("default", connection=redis_conn)
 
-MAX_FILES_PER_PROJECT = 3
-MAX_FILE_SIZE_MB = 2
+MAX_FILES_PER_PROJECT = 5
+MAX_FILE_SIZE_MB = 10
 MAX_TOTAL_PROJECT_SIZE_MB = 25
 
 MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024

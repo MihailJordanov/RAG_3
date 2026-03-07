@@ -6,7 +6,12 @@ import ProjectList from "./ProjectList";
 import ChatWindow from "./ChatWindow";
 import UploadCard from "./UploadCard";
 import SourcesPanel from "./SourcesPanel";
-import type { Project, ChatMessage, ProjectSource, ProjectLimits } from "@/lib/types";
+import type {
+  Project,
+  ChatMessage,
+  ProjectSource,
+  ProjectLimits,
+} from "@/lib/types";
 
 export default function Shell() {
   const [projects, setProjects] = useState<Project[]>([]);
@@ -28,14 +33,13 @@ export default function Shell() {
     message?: string;
   } | null>(null);
 
-
   async function loadProjectLimits(projectId: string) {
     try {
-        const data = await api.getProjectLimits(projectId);
-        setProjectLimits(data);
+      const data = await api.getProjectLimits(projectId);
+      setProjectLimits(data);
     } catch (err) {
-        console.error(err);
-        setProjectLimits(null);
+      console.error(err);
+      setProjectLimits(null);
     }
   }
 
@@ -57,13 +61,14 @@ export default function Shell() {
     setUploadState(null);
 
     if (!activeProjectId) {
-        setSources([]);
-        return;
+      setSources([]);
+      setProjectLimits(null);
+      return;
     }
 
     loadSources(activeProjectId).catch(console.error);
     loadProjectLimits(activeProjectId).catch(console.error);
-  }, [activeProjectId]);    
+  }, [activeProjectId]);
 
   useEffect(() => {
     if (!activeProjectId) {
@@ -190,109 +195,107 @@ export default function Shell() {
     let done = false;
 
     while (!done) {
-        const status = await api.getIngestJobStatus(jobId);
+      const status = await api.getIngestJobStatus(jobId);
 
-        if (status.status === "queued" || status.status === "running") {
+      if (status.status === "queued" || status.status === "running") {
         setUploadState({
-            fileName,
-            phase: "processing",
-            progress:
+          fileName,
+          phase: "processing",
+          progress:
             typeof status.progress === "number"
-                ? status.progress
-                : status.status === "queued"
-                ? 15
-                : 65,
-            message: status.message ?? "Processing document...",
+              ? status.progress
+              : status.status === "queued"
+              ? 15
+              : 65,
+          message: status.message ?? "Processing document...",
         });
-        }
+      }
 
-        if (status.status === "succeeded") {
+      if (status.status === "succeeded") {
         setUploadState({
-            fileName,
-            phase: "done",
-            progress: 100,
-            message: "File uploaded and indexed successfully.",
+          fileName,
+          phase: "done",
+          progress: 100,
+          message: "File uploaded and indexed successfully.",
         });
 
         await loadSources(projectId);
         await loadProjectLimits(projectId);
         done = true;
         break;
-        }
+      }
 
-        if (status.status === "failed" || status.status === "not_found") {
+      if (status.status === "failed" || status.status === "not_found") {
         setUploadState({
-            fileName,
-            phase: "error",
-            progress: 0,
-            message:
-            status.error ??
-            status.message ??
-            "Document processing failed.",
+          fileName,
+          phase: "error",
+          progress: 0,
+          message:
+            status.error ?? status.message ?? "Document processing failed.",
         });
         done = true;
         break;
-        }
+      }
 
-        await new Promise((resolve) => setTimeout(resolve, 1200));
+      await new Promise((resolve) => setTimeout(resolve, 1200));
     }
   }
 
   async function handleUpload(file: File) {
     if (!activeProjectId) {
-        alert("Please select a project first.");
-        return;
+      alert("Please select a project first.");
+      return;
     }
 
     setUploadState({
-        fileName: file.name,
-        phase: "uploading",
-        progress: 0,
-        message: "Uploading file...",
+      fileName: file.name,
+      phase: "uploading",
+      progress: 0,
+      message: "Uploading file...",
     });
 
     try {
-        const result = await api.ingestPdfWithProgress(
+      const result = await api.ingestPdfWithProgress(
         activeProjectId,
         file,
         (progress) => {
-            setUploadState({
+          setUploadState({
             fileName: file.name,
             phase: "uploading",
             progress,
             message: "Uploading file...",
-            });
+          });
         }
-        );
+      );
 
-        if (result?.job_id) {
+      if (result?.job_id) {
         setUploadState({
-            fileName: file.name,
-            phase: "processing",
-            progress: 15,
-            message: "Queued for processing...",
+          fileName: file.name,
+          phase: "processing",
+          progress: 15,
+          message: "Queued for processing...",
         });
 
         await pollIngestJob(result.job_id, file.name, activeProjectId);
-        } else {
+      } else {
         setUploadState({
-            fileName: file.name,
-            phase: "done",
-            progress: 100,
-            message: "File uploaded successfully.",
+          fileName: file.name,
+          phase: "done",
+          progress: 100,
+          message: "File uploaded successfully.",
         });
 
         await loadSources(activeProjectId);
         await loadProjectLimits(activeProjectId);
-        }
+      }
     } catch (err) {
-        console.error(err);
-        setUploadState({
+      console.error(err);
+      setUploadState({
         fileName: file.name,
         phase: "error",
         progress: 0,
         message: err instanceof Error ? err.message : "Failed to upload file.",
-        });
+      });
     }
   }
 
@@ -335,13 +338,13 @@ export default function Shell() {
               <UploadCard
                 projectName={activeProject?.name ?? null}
                 uploadState={uploadState}
-                sources={sources}
-                limits={projectLimits}
-                onUpload={handleUpload}  
+                onUpload={handleUpload}
               />
+
               <SourcesPanel
                 projectName={activeProject?.name ?? null}
                 sources={sources}
+                limits={projectLimits}
                 isLoading={isLoadingSources}
               />
             </>

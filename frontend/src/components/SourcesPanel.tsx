@@ -1,26 +1,43 @@
 "use client";
 
-import type { ProjectSource } from "@/lib/types";
+import type { ProjectSource, ProjectLimits } from "@/lib/types";
+import SourcesUsageCompact from "./SourcesUsageCompact";
 
 type Props = {
   projectName: string | null;
   sources: ProjectSource[];
+  limits: ProjectLimits | null;
   isLoading?: boolean;
 };
+
+function formatFileSize(bytes?: number | null) {
+  if (!bytes || bytes <= 0) return null;
+
+  const mb = bytes / (1024 * 1024);
+  if (mb >= 1) return `${mb.toFixed(1)} MB`;
+
+  const kb = bytes / 1024;
+  if (kb >= 1) return `${kb.toFixed(1)} KB`;
+
+  return `${bytes} B`;
+}
 
 export default function SourcesPanel({
   projectName,
   sources,
+  limits,
   isLoading = false,
 }: Props) {
   const isEmpty = !isLoading && sources.length === 0;
 
   return (
     <div className="right-card sources-card">
-      <div className="card-header">
-        <p className="eyebrow">Knowledge Base</p>
-        <h3 className="card-title glow-text">Sources</h3>
+      <div className="card-header compact-card-header">
+        <p className="eyebrow compact-eyebrow">Knowledge Base</p>
+        <h3 className="card-title compact-card-title glow-text">Sources</h3>
       </div>
+
+      <SourcesUsageCompact sources={sources} limits={limits} />
 
       <div className="sources-list custom-scroll">
         {isLoading ? (
@@ -42,19 +59,28 @@ export default function SourcesPanel({
             </div>
           </div>
         ) : (
-          sources.map((source, index) => (
-            <div className="source-item" key={`${source.name}-${index}`}>
-              <div className="source-icon">
-                {source.name.split(".").pop()?.toUpperCase() ?? "FILE"}
-              </div>
-              <div>
-                <div className="source-name">{source.name}</div>
-                <div className="source-meta">
-                  {source.status ?? "Ready"}
+          sources.map((source, index) => {
+            const extension =
+              source.name.split(".").pop()?.toUpperCase() ?? "FILE";
+            const sizeLabel = formatFileSize(source.size_bytes);
+
+            return (
+              <div className="source-item compact-source-item" key={`${source.name}-${index}`}>
+                <div className="source-icon compact-source-icon">{extension}</div>
+
+                <div className="source-content">
+                  <div className="source-name" title={source.name}>
+                    {source.name}
+                  </div>
+
+                  <div className="source-meta compact-source-meta">
+                    <span>{source.status ?? "Ready"}</span>
+                    {sizeLabel && <span>• {sizeLabel}</span>}
+                  </div>
                 </div>
               </div>
-            </div>
-          ))
+            );
+          })
         )}
       </div>
     </div>

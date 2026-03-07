@@ -655,6 +655,39 @@ button {
   padding-bottom: 18px;
 }
 
+.sidebar-empty-state {
+  margin-top: 24px;
+  padding: 18px;
+  border-radius: 16px;
+  text-align: center;
+  background: rgba(255,255,255,0.02);
+  border: 1px solid rgba(255,255,255,0.05);
+}
+
+.sidebar-empty-icon {
+  font-size: 28px;
+  margin-bottom: 10px;
+  color: #00ffb7;
+}
+
+.sidebar-empty-title {
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+
+.sidebar-empty-subtitle {
+  font-size: 12px;
+  line-height: 1.5;
+  color: rgba(220,235,255,0.6);
+}
+
+.upload-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
 .right-card {
   background: linear-gradient(180deg, rgba(18, 18, 28, 0.96), rgba(11, 11, 18, 0.96));
   border: 1px solid rgba(196, 132, 252, 0.15);
@@ -915,6 +948,105 @@ button {
 .empty-step-text {
   color: rgba(220, 235, 255, 0.68);
   line-height: 1.55;
+}
+
+
+.chat-header-actions {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  position: relative;
+}
+
+.chat-topbar {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 12px;
+}
+
+.project-id-tools {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+
+.project-id-toggle {
+  height: 38px;
+  padding: 0 14px;
+  border-radius: 12px;
+  border: 1px solid rgba(0, 255, 183, 0.18);
+  background: rgba(255, 255, 255, 0.05);
+  color: #e9fffa;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.project-id-toggle:hover {
+  border-color: rgba(0, 255, 183, 0.5);
+  background: rgba(0, 255, 183, 0.08);
+  box-shadow: 0 0 18px rgba(0, 255, 183, 0.08);
+}
+
+.project-id-panel {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  width: min(360px, 82vw);
+  padding: 16px;
+  border-radius: 18px;
+  background: linear-gradient(180deg, rgba(10, 16, 30, 0.98), rgba(8, 12, 24, 0.96));
+  border: 1px solid rgba(0, 255, 183, 0.16);
+  box-shadow:
+    0 14px 38px rgba(0, 0, 0, 0.38),
+    0 0 22px rgba(0, 255, 183, 0.08);
+  z-index: 30;
+  animation: fadeSlideDown 0.18s ease;
+}
+
+.project-id-label {
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: rgba(220, 235, 255, 0.58);
+  margin-bottom: 8px;
+}
+
+.project-id-value {
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: #f3fffc;
+  font-size: 0.92rem;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.project-id-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.project-id-copy-btn,
+.project-id-done-btn {
+  min-width: 92px;
+}
+
+@keyframes fadeSlideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 

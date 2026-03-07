@@ -202,6 +202,7 @@ export default function Shell() {
         <section className="panel chat-panel">
           <ChatWindow
             projectName={activeProject?.name ?? "No project selected"}
+            projectId={activeProject?.id ?? null}
             hasSelectedProject={hasSelectedProject}
             messages={messages}
             isGenerating={isGenerating || isLoadingMessages}

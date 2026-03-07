@@ -6,11 +6,11 @@ import CreateProjectForm from "./CreateProjectForm";
 
 type Props = {
   projectName: string;
+  projectId: string | null;
   hasSelectedProject: boolean;
   messages: ChatMessage[];
   isGenerating: boolean;
   onSend: (text: string) => void | Promise<void>;
-
   newProjectName: string;
   onNewProjectNameChange: (value: string) => void;
   onCreateProject: () => void;
@@ -18,6 +18,7 @@ type Props = {
 
 export default function ChatWindow({
   projectName,
+  projectId,
   hasSelectedProject,
   messages,
   isGenerating,
@@ -27,6 +28,9 @@ export default function ChatWindow({
   onCreateProject,
 }: Props) {
   const [input, setInput] = useState("");
+  const [showProjectIdPanel, setShowProjectIdPanel] = useState(false);
+  const [copied, setCopied] = useState(false);
+
   const isEmptyChat = messages.length === 0;
 
   async function handleSubmit(e: React.FormEvent) {
@@ -37,6 +41,22 @@ export default function ChatWindow({
 
     setInput("");
     await onSend(trimmed);
+  }
+
+  async function handleCopyProjectId() {
+    if (!projectId) return;
+
+    try {
+      await navigator.clipboard.writeText(projectId);
+      setCopied(true);
+
+      setTimeout(() => {
+        setCopied(false);
+      }, 1200);
+    } catch (err) {
+      console.error(err);
+      alert("Failed to copy project ID.");
+    }
   }
 
   if (!hasSelectedProject) {
@@ -68,6 +88,50 @@ export default function ChatWindow({
     <div className="chat-window">
       {isEmptyChat ? (
         <section className="chat-hero">
+          <div className="chat-topbar">
+            <div />
+            <div className="project-id-tools">
+              <button
+                type="button"
+                className="project-id-toggle"
+                onClick={() => {
+                  setShowProjectIdPanel((prev) => !prev);
+                  setCopied(false);
+                }}
+              >
+                {showProjectIdPanel ? "Hide ID" : "Project ID"}
+              </button>
+
+              {showProjectIdPanel && projectId && (
+                <div className="project-id-panel">
+                  <div className="project-id-label">Project ID</div>
+                  <div className="project-id-value">{projectId}</div>
+
+                  <div className="project-id-actions">
+                    <button
+                      type="button"
+                      className="secondary-button project-id-copy-btn"
+                      onClick={handleCopyProjectId}
+                    >
+                      {copied ? "Copied!" : "Copy"}
+                    </button>
+
+                    <button
+                      type="button"
+                      className="neon-button project-id-done-btn"
+                      onClick={() => {
+                        setShowProjectIdPanel(false);
+                        setCopied(false);
+                      }}
+                    >
+                      Done
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+
           <p className="eyebrow">AI Workspace</p>
           <h1 className="chat-hero-title glow-text">RAG 3</h1>
           <p className="chat-hero-subtitle">{projectName}</p>
@@ -84,8 +148,51 @@ export default function ChatWindow({
             <p className="chat-project-name">{projectName}</p>
           </div>
 
-          <div className={`status-pill ${isGenerating ? "live" : ""}`}>
-            {isGenerating ? "Generating..." : "Ready"}
+          <div className="chat-header-actions">
+            <div className={`status-pill ${isGenerating ? "live" : ""}`}>
+              {isGenerating ? "Generating..." : "Ready"}
+            </div>
+
+            <div className="project-id-tools">
+              <button
+                type="button"
+                className="project-id-toggle"
+                onClick={() => {
+                  setShowProjectIdPanel((prev) => !prev);
+                  setCopied(false);
+                }}
+              >
+                {showProjectIdPanel ? "Hide ID" : "Project ID"}
+              </button>
+
+              {showProjectIdPanel && projectId && (
+                <div className="project-id-panel">
+                  <div className="project-id-label">Project ID</div>
+                  <div className="project-id-value">{projectId}</div>
+
+                  <div className="project-id-actions">
+                    <button
+                      type="button"
+                      className="secondary-button project-id-copy-btn"
+                      onClick={handleCopyProjectId}
+                    >
+                      {copied ? "Copied!" : "Copy"}
+                    </button>
+
+                    <button
+                      type="button"
+                      className="neon-button project-id-done-btn"
+                      onClick={() => {
+                        setShowProjectIdPanel(false);
+                        setCopied(false);
+                      }}
+                    >
+                      Done
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         </header>
       )}

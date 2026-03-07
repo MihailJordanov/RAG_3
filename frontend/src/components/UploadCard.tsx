@@ -30,15 +30,17 @@ export default function UploadCard({ projectName, onUpload }: Props) {
           PDF, DOCX, TXT and other supported sources
         </p>
 
-        <label className="neon-button secondary-button" style={{ display: "inline-block" }}>
-          Choose File
+        <label
+          className="neon-button secondary-button upload-button"
+        >
+            Choose File
             <input
-            type="file"
-            accept=".pdf,application/pdf"
-            onChange={handleFileChange}
-            style={{ display: "none" }}
-            disabled={!projectName}
-            />
+                type="file"
+                accept=".pdf,application/pdf"
+                onChange={handleFileChange}
+                style={{ display: "none" }}
+                disabled={!projectName}
+        />
         </label>
       </div>
     </div>

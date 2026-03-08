@@ -435,25 +435,28 @@ button {
   border: 1px solid rgba(196, 132, 252, 0.24);
 }
 
-.message-role {
-  display: inline-block;
-  font-size: 0.76rem;
-  color: var(--text-dim);
-  margin-bottom: 8px;
-  text-transform: uppercase;
-  letter-spacing: 0.12em;
-}
-
 .composer {
   position: relative;
   display: flex;
-  gap: 12px;
+  gap: 12px;  
   padding: 12px;
   border-radius: 22px;
   border: 1px solid rgba(196, 132, 252, 0.18);
   background: rgba(10, 10, 16, 0.9);
   box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.02);
   overflow: hidden;
+}
+
+.user-bubble .message-role {
+  color: #d8b4fe;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+}
+
+.assistant-bubble .message-role {
+  color: #d8b4fe;
+  font-weight: 700;
+  letter-spacing: 0.08em;
 }
 
 .composer::before {
@@ -1655,7 +1658,7 @@ button {
 }
 
 
-@media (max-width: 1200px) {
+@media (max-width: 860px) {
   .panel,
   .sidebar-panel,
   .right-panel,
@@ -1699,14 +1702,6 @@ button {
     background: #101018;
   }
 
-  .sources-card {
-    display: flex;
-    flex-direction: column;
-    flex: 1 1 auto;
-    min-height: 0;
-  }
-
-
   .sidebar-panel,
   .right-panel {
     position: fixed;
@@ -1743,25 +1738,43 @@ button {
     box-sizing: border-box;
   }
 
-.sidebar-panel.mobile-panel-open {
-  left: 0;
-}
+  .sidebar-panel.mobile-panel-open {
+    left: 0;
+  }
 
-.right-panel.mobile-panel-open {
-  right: 0;
-}
+  .right-panel.mobile-panel-open {
+    right: 0;
+  }
+
+  .chat-panel {
+    position: relative;
+    z-index: 1;
+    min-height: calc(100dvh - 20px);
+    height: calc(100dvh - 20px) !important;
+    max-height: calc(100dvh - 20px) !important;
+  }
+
+  .chat-window {
+    display: flex;
+    flex-direction: column;
+    height: 98%;
+    min-height: 0;
+    padding: 14px;
+  }
 
   .mobile-chat-toolbar {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 10px;
+    gap: 8px;
     margin-bottom: 12px;
+    flex-shrink: 0;
   }
 
   .mobile-panel-toggle {
     display: inline-flex;
     align-items: center;
+    justify-content: center;
     gap: 8px;
     min-height: 44px;
     padding: 10px 14px;
@@ -1775,6 +1788,7 @@ button {
       border-color 0.18s ease,
       box-shadow 0.18s ease,
       background 0.18s ease;
+    flex: 1 1 0;
   }
 
   .mobile-panel-toggle:active {
@@ -1797,21 +1811,135 @@ button {
     letter-spacing: 0.02em;
   }
 
-  .chat-panel {
+  .mobile-id-tools {
     position: relative;
-    z-index: 1;
-    min-height: calc(100dvh - 20px);
+    flex: 0 0 auto;
+    display: flex;
+    justify-content: center;
   }
 
-  .chat-window {
-    min-height: calc(100dvh - 20px);
+  .id-toggle-mobile {
+    min-width: 64px;
+    flex: 0 0 auto;
   }
 
-  .sidebar,
-  .right-card,
-  .sources-card,
-  .upload-card {
-    height: auto;
+  .mobile-project-id-panel {
+    position: absolute;
+    top: calc(100% + 8px);
+    left: 50%;
+    right: auto;
+    transform: translateX(-50%);
+    width: min(320px, 88vw);
+    z-index: 130;
+  }
+
+  .project-id-tools {
+    display: none;
+  }
+
+  .sidebar-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .chat-header {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.chat-header > div:first-child {
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.chat-header-actions {
+  width: auto;
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  flex-wrap: nowrap;
+}
+
+.chat-title {
+  font-size: 1.2rem;
+  line-height: 1.1;
+}
+
+.chat-project-name {
+  font-size: 0.9rem;
+  line-height: 1.2;
+  margin-top: 2px;
+}
+
+.status-pill {
+  padding: 8px 12px;
+  font-size: 0.8rem;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+
+  .messages-area {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 8px 0 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .message-bubble {
+    max-width: 100%;
+  }
+
+  .composer {
+    flex-shrink: 0;
+    position: sticky;
+    bottom: 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    max-width: 100%;
+    padding: 10px;
+    margin-top: 8px;
+    margin-bottom: env(safe-area-inset-bottom);
+    box-sizing: border-box;
+    background: linear-gradient(
+      to top,
+      rgba(6, 6, 10, 0.98),
+      rgba(6, 6, 10, 0.88),
+      transparent
+    );
+    z-index: 2;
+  }
+
+  .composer-input {
+    flex: 1 1 auto;
+    min-width: 0;
+    height: 44px;
+    font-size: 16px;
+  }
+
+  .send-button {
+    flex: 0 0 auto;
+    height: 44px;
+    min-width: 70px;
+    padding: 0 14px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    white-space: nowrap;
   }
 
   .sidebar {
@@ -1820,15 +1948,17 @@ button {
     overflow-y: auto;
   }
 
-  .mobile-tools-drawer-header {
-    display: block;
-    padding: 18px 16px 0;
-  }
-
   .right-panel .right-card {
     margin: 0;
     width: 100%;
     flex-shrink: 0;
+  }
+
+  .sources-card {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+    min-height: 0;
   }
 
   .project-list,
@@ -1845,76 +1975,12 @@ button {
     padding-right: 0;
   }
 
-  .message-bubble {
-    max-width: 100%;
-  }
-
-  .chat-header,
-  .sidebar-header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 10px;
-  }
-
-  .chat-header-actions {
-    width: 100%;
-    align-items: flex-start;
-    gap: 10px;
-    flex-wrap: wrap;
-  }
-
-  .project-id-panel {
-    right: 0;
-    left: auto;
-    max-width: min(88vw, 320px);
-  }
-
-  .messages-area {
-    min-height: 0;
-  }
-
-  .composer {
-    position: sticky;
-    bottom: 0;
-    display: flex;
-    flex-direction: row;
-    align-items: stretch;
-    gap: 8px;
-    padding-top: 10px;
-    background: linear-gradient(
-      to top,
-      rgba(6, 6, 10, 0.98),
-      rgba(6, 6, 10, 0.88),
-      transparent
-    );
-    z-index: 2;
-    backdrop-filter: none;
-    -webkit-backdrop-filter: none;
-  }
-
-  .composer-input {
-    min-height: 48px;
-  }
-
-  .send-button {
-    width: auto;
-    min-width: 92px;
-  }
-
-  .right-panel {
-    min-height: auto;
-  }
-
   .project-item,
   .project-main,
   .delete-project-button,
   .source-item,
   .upload-button {
     min-height: 44px;
-  }
-
-  .project-item {
-    gap: 8px;
   }
 
   .project-main {
@@ -1947,81 +2013,20 @@ button {
     display: none !important;
   }
 
-  .composer {
-  position: sticky;
-  bottom: 0;
-
-  display: flex;
-  align-items: center;
-
-  gap: 8px;
-  padding: 10px;
-
-  width: 100%;
-  max-width: 100%;
-
-  box-sizing: border-box;
-}
-
-.composer-input {
-  flex: 1 1 auto;
-  min-width: 0; /* много важно за flex overflow */
-  height: 44px;
-
-  font-size: 16px; /* предотвратява iOS zoom */
-}
-
-  .send-button {
-    flex: 0 0 auto;
-
-    height: 44px;
-    min-width: 70px;
-    padding: 0 14px;
-
-    border-radius: 12px;
-
-    display: flex;
-    align-items: center;
-    justify-content: center;
-
-    white-space: nowrap;
+  .user-bubble .message-role {
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    font-size: 0.76rem;
   }
 
-    .project-id-tools {
-      display: none;
-    }
-
-  .mobile-chat-toolbar {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 8px;
+  .assistant-bubble .message-role {
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    font-size: 0.76rem;
   }
 
-  .mobile-panel-toggle {
-    flex: 1 1 0;
-    justify-content: center;
+  .message-bubble {
+    padding: 10px 16px;
   }
 
-  .mobile-id-tools {
-    position: relative;
-    flex: 0 0 auto;
-    display: flex;
-    justify-content: center;
-  }
-
-  .id-toggle-mobile {
-    min-width: 64px;
-    flex: 0 0 auto;
-  }
-
-  .mobile-project-id-panel {
-    position: absolute;
-    top: calc(100% + 8px);
-    left: 50%;
-    right: auto;
-    transform: translateX(-50%);
-    width: min(320px, 88vw);
-    z-index: 130;
-  }
 }

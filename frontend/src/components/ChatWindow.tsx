@@ -48,6 +48,7 @@ export default function ChatWindow({
   const projectIdToggleRef = useRef<HTMLButtonElement | null>(null);
 
   const isEmptyChat = messages.length === 0;
+  const EMPTY_MESSAGE = "Your workspace is empty. Upload a document from the Tools ✦ panel.";
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
@@ -361,7 +362,17 @@ export default function ChatWindow({
               <span className="message-role">
                 {message.role === "user" ? "You" : "Assistant"}
               </span>
-              <p>{message.content}</p>
+              <p
+                dangerouslySetInnerHTML={{
+                  __html:
+                    message.content === EMPTY_MESSAGE
+                      ? message.content.replace(
+                          "Tools ✦",
+                          '<span class="tools-highlight">Tools ✦</span>'
+                        )
+                      : message.content,
+                }}
+              />
             </div>
           </div>
         ))}

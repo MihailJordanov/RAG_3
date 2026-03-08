@@ -1551,6 +1551,14 @@ button {
     0 0 6px rgba(162, 89, 255, 0.45);
 }
 
+.tools-highlight {
+  background: rgba(168, 85, 247, 0.18);
+color: #e9d5ff;
+  padding: 2px 8px;
+  border-radius: 6px;
+  font-weight: 600;
+}
+
 @keyframes fadeSlideDown {
   from {
     opacity: 0;

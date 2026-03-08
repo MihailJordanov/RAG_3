@@ -26,6 +26,8 @@ VECTOR_WEIGHT = 0.75
 BM25_WEIGHT = 0.25
 DEFAULT_RERANK_TOP_N = 6
 
+EMPTY_PROJECT_MESSAGE = ("Your workspace is empty. Upload a document from the Tools ✦ panel.")
+
 class QueryVariations(BaseModel):
     queries: List[str] = Field(default_factory=list)
 
@@ -187,6 +189,10 @@ def chat(
     max_distance: float = DEFAULT_MAX_DISTANCE,
 ) -> Tuple[str, list]:
     db = load_project_db(project_id)
+
+    if not project_has_documents(db):
+        return EMPTY_PROJECT_MESSAGE, []
+
     embedding_model = OpenAIEmbeddings(model="text-embedding-3-small", api_key=settings.openai_api_key)
 
     persist_dir = project_chroma_dir(project_id)
@@ -357,3 +363,20 @@ def ask_question(
         "sources": sources,
         "config": RAG_CONFIG,
     }
+
+
+def project_has_documents(db: Chroma) -> bool:
+    """
+    Returns True if the project has at least one indexed document chunk.
+    """
+    try:
+        return (db._collection.count() or 0) > 0
+    except Exception:
+        pass
+
+    try:
+        res = db.get(limit=1)
+        docs = res.get("documents", []) if res else []
+        return len(docs) > 0
+    except Exception:
+        return False

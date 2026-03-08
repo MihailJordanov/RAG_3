@@ -1157,6 +1157,7 @@ button {
 
 .chat-hero-empty {
   position: relative;
+  transform: translateY(-28px);
 }
 
 .chat-hero-empty .project-id-tools {
@@ -1867,6 +1868,13 @@ color: #e9d5ff;
   position: relative;
 }
 
+.chat-topbar-center {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
 
 @keyframes fadeSlideDown {
   from {
@@ -1975,7 +1983,7 @@ color: #e9d5ff;
 }
 
 
-@media (max-width: 860px) {
+@media (max-width: 1200px) {
   .panel,
   .sidebar-panel,
   .right-panel,

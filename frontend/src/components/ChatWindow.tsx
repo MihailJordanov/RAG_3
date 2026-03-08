@@ -172,9 +172,8 @@ export default function ChatWindow({
 
       {isEmptyChat ? (
         <section className="chat-hero chat-hero-empty">
-          <div className="chat-topbar">
-            <div />
-            <div className="chat-topbar-actions chat-topbar-actions-empty">
+          <div className="chat-topbar chat-topbar-center">
+            <div className="chat-topbar-actions">
               {renderAuthButton()}
             </div>
           </div>

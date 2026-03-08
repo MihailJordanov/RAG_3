@@ -24,7 +24,7 @@ export default function ProjectList({
   onCreate,
   onDelete,
 }: Props) {
-  function truncateProjectName(name: string, max = 12) {
+  function truncateProjectName(name: string, max = 16) {
     return name.length > max ? `${name.slice(0, max)}...` : name;
   }
 
@@ -41,11 +41,11 @@ export default function ProjectList({
 
       {projects.length > 0 && (
         <div className="project-create-box">
-            <CreateProjectForm
+          <CreateProjectForm
             newProjectName={newProjectName}
             onNewProjectNameChange={onNewProjectNameChange}
             onCreate={onCreate}
-            />
+          />
         </div>
       )}
 
@@ -64,13 +64,14 @@ export default function ProjectList({
                   className="project-main"
                   onClick={() => onSelect(project.id)}
                   type="button"
+                  title={project.name}
                 >
                   <span className="project-dot" />
-                    <div className="project-meta">
-                      <span className="project-name" title={project.name}>
-                        {truncateProjectName(project.name)}
-                      </span>
-                    </div>
+                  <div className="project-meta">
+                    <span className="project-name" title={project.name}>
+                      {truncateProjectName(project.name)}
+                    </span>
+                  </div>
                 </button>
 
                 <button
@@ -81,6 +82,7 @@ export default function ProjectList({
                   onClick={() => onDelete(project.id)}
                   disabled={deleting}
                   title="Delete project"
+                  aria-label={`Delete project ${project.name}`}
                 >
                   {deleting ? "..." : "✕"}
                 </button>
@@ -92,12 +94,19 @@ export default function ProjectList({
         <div className="sidebar-empty-state">
           <div className="sidebar-empty-icon">✦</div>
 
-          <div className="sidebar-empty-title">
-            No projects yet
-          </div>
+          <div className="sidebar-empty-title">No projects yet</div>
 
           <div className="sidebar-empty-subtitle">
-            Create your first project to start building a knowledge base and chatting with your documents.
+            Create your first project to start building a knowledge base and
+            chatting with your documents.
+          </div>
+
+          <div className="project-create-box empty-create-box">
+            <CreateProjectForm
+              newProjectName={newProjectName}
+              onNewProjectNameChange={onNewProjectNameChange}
+              onCreate={onCreate}
+            />
           </div>
         </div>
       )}

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { api } from "@/lib/api";
 import ProjectList from "./ProjectList";
 import ChatWindow from "./ChatWindow";
@@ -26,12 +26,46 @@ export default function Shell() {
   const [sources, setSources] = useState<ProjectSource[]>([]);
   const [isLoadingSources, setIsLoadingSources] = useState(false);
 
+  const [isMobileProjectsOpen, setIsMobileProjectsOpen] = useState(false);
+  const [isMobileToolsOpen, setIsMobileToolsOpen] = useState(false);
+
   const [uploadState, setUploadState] = useState<{
     fileName: string;
     phase: "idle" | "uploading" | "processing" | "done" | "error";
     progress: number;
     message?: string;
   } | null>(null);
+
+  const projectsPanelRef = useRef<HTMLElement | null>(null);
+  const toolsPanelRef = useRef<HTMLElement | null>(null);
+
+  const projectsToggleRef = useRef<HTMLButtonElement | null>(null);
+  const toolsToggleRef = useRef<HTMLButtonElement | null>(null);
+
+  function closeAllMobilePanels() {
+    setIsMobileProjectsOpen(false);
+    setIsMobileToolsOpen(false);
+  }
+
+  function toggleProjectsPanel() {
+    setIsMobileProjectsOpen((prev) => {
+      const next = !prev;
+      if (next) {
+        setIsMobileToolsOpen(false);
+      }
+      return next;
+    });
+  }
+
+  function toggleToolsPanel() {
+    setIsMobileToolsOpen((prev) => {
+      const next = !prev;
+      if (next) {
+        setIsMobileProjectsOpen(false);
+      }
+      return next;
+    });
+  }
 
   async function loadProjectLimits(projectId: string) {
     try {
@@ -52,6 +86,42 @@ export default function Shell() {
       return data[0]?.id ?? "";
     });
   }
+
+  useEffect(() => {
+    function handlePointerDown(e: PointerEvent) {
+      if (window.innerWidth > 860) return;
+
+      const target = e.target as Node;
+
+      if (isMobileProjectsOpen) {
+        const clickedInsideProjectsPanel =
+          projectsPanelRef.current?.contains(target) ?? false;
+        const clickedProjectsToggle =
+          projectsToggleRef.current?.contains(target) ?? false;
+
+        if (!clickedInsideProjectsPanel && !clickedProjectsToggle) {
+          setIsMobileProjectsOpen(false);
+        }
+      }
+
+      if (isMobileToolsOpen) {
+        const clickedInsideToolsPanel =
+          toolsPanelRef.current?.contains(target) ?? false;
+        const clickedToolsToggle =
+          toolsToggleRef.current?.contains(target) ?? false;
+
+        if (!clickedInsideToolsPanel && !clickedToolsToggle) {
+          setIsMobileToolsOpen(false);
+        }
+      }
+    }
+
+    document.addEventListener("pointerdown", handlePointerDown);
+    return () => {
+      document.removeEventListener("pointerdown", handlePointerDown);
+    };
+  }, [isMobileProjectsOpen, isMobileToolsOpen]);
+
 
   useEffect(() => {
     loadProjects().catch(console.error);
@@ -92,6 +162,47 @@ export default function Shell() {
     loadMessages().catch(console.error);
   }, [activeProjectId]);
 
+  useEffect(() => {
+    setIsMobileProjectsOpen(false);
+  }, [activeProjectId]);
+
+  useEffect(() => {
+    const hasOpenPanel = isMobileProjectsOpen || isMobileToolsOpen;
+
+    if (hasOpenPanel) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [isMobileProjectsOpen, isMobileToolsOpen]);
+
+  useEffect(() => {
+    function handleResize() {
+      if (window.innerWidth > 860) {
+        setIsMobileProjectsOpen(false);
+        setIsMobileToolsOpen(false);
+      }
+    }
+
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  useEffect(() => {
+    function handleKeyDown(e: KeyboardEvent) {
+      if (e.key === "Escape") {
+        closeAllMobilePanels();
+      }
+    }
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
+
   const activeProject = useMemo(
     () => projects.find((p) => p.id === activeProjectId) ?? null,
     [projects, activeProjectId]
@@ -108,6 +219,7 @@ export default function Shell() {
       setNewProjectName("");
       await loadProjects();
       setActiveProjectId(created.id);
+      closeAllMobilePanels();
     } catch (err) {
       console.error(err);
       alert("Failed to create project.");
@@ -191,7 +303,11 @@ export default function Shell() {
     }
   }
 
-  async function pollIngestJob(jobId: string, fileName: string, projectId: string) {
+  async function pollIngestJob(
+    jobId: string,
+    fileName: string,
+    projectId: string
+  ) {
     let done = false;
 
     while (!done) {
@@ -304,15 +420,26 @@ export default function Shell() {
       <div className="workspace-bg-orb workspace-bg-orb-1" />
       <div className="workspace-bg-orb workspace-bg-orb-2" />
 
+
+
       <section className="workspace-shell">
-        <aside className="panel sidebar-panel">
+        <aside
+          ref={projectsPanelRef}
+          className={`panel sidebar-panel ${
+            isMobileProjectsOpen ? "mobile-panel-open" : ""
+          }`}
+          //aria-hidden={!isMobileProjectsOpen && typeof window !== "undefined" && window.innerWidth <= 860}
+        >
           <ProjectList
             projects={projects}
             activeProjectId={activeProjectId}
             busyId={busyId}
             newProjectName={newProjectName}
             onNewProjectNameChange={setNewProjectName}
-            onSelect={setActiveProjectId}
+            onSelect={(id) => {
+              setActiveProjectId(id);
+              setIsMobileProjectsOpen(false);
+            }}
             onCreate={handleCreateProject}
             onDelete={handleDeleteProject}
           />
@@ -329,12 +456,29 @@ export default function Shell() {
             newProjectName={newProjectName}
             onNewProjectNameChange={setNewProjectName}
             onCreateProject={handleCreateProject}
+            isMobileProjectsOpen={isMobileProjectsOpen}
+            isMobileToolsOpen={isMobileToolsOpen}
+            onToggleProjectsPanel={toggleProjectsPanel}
+            onToggleToolsPanel={toggleToolsPanel}
+            projectsToggleRef={projectsToggleRef}
+            toolsToggleRef={toolsToggleRef}
           />
         </section>
 
-        <aside className="panel right-panel">
+        <aside
+          ref={toolsPanelRef}
+          className={`panel right-panel ${
+            isMobileToolsOpen ? "mobile-panel-open" : ""
+          }`}
+          //aria-hidden={!isMobileToolsOpen && typeof window !== "undefined" && window.innerWidth <= 860}
+        >
           {hasSelectedProject ? (
             <>
+              <div className="mobile-tools-drawer-header">
+                <p className="eyebrow">Workspace Tools</p>
+                <h3 className="card-title glow-text">Documents & Sources</h3>
+              </div>
+
               <UploadCard
                 projectName={activeProject?.name ?? null}
                 uploadState={uploadState}

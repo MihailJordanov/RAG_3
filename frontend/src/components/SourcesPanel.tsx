@@ -65,8 +65,13 @@ export default function SourcesPanel({
             const sizeLabel = formatFileSize(source.size_bytes);
 
             return (
-              <div className="source-item compact-source-item" key={`${source.name}-${index}`}>
-                <div className="source-icon compact-source-icon">{extension}</div>
+              <div
+                className="source-item compact-source-item"
+                key={`${source.name}-${index}`}
+              >
+                <div className="source-icon compact-source-icon">
+                  {extension}
+                </div>
 
                 <div className="source-content">
                   <div className="source-name" title={source.name}>

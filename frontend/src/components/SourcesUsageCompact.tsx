@@ -42,8 +42,12 @@ export default function SourcesUsageCompact({
   return (
     <div className="sources-usage-compact">
       <div className="sources-usage-topline">
-        <span>{fileCount}/{maxFiles} files</span>
-        <span>{formatMb(totalBytes)}/{maxTotalProjectSizeMb} MB</span>
+        <span>
+          {fileCount}/{maxFiles} files
+        </span>
+        <span>
+          {formatMb(totalBytes)}/{maxTotalProjectSizeMb} MB
+        </span>
       </div>
 
       <div className="sources-usage-bars">

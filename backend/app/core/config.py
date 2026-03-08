@@ -1,5 +1,6 @@
 from pydantic_settings import BaseSettings
 
+
 class Settings(BaseSettings):
     openai_api_key: str
     database_url: str
@@ -12,7 +13,14 @@ class Settings(BaseSettings):
     chroma_dir: str = "./data/chroma"
     upload_dir: str = "./data/uploads"
 
+    secret_key: str
+    algorithm: str = "HS256"
+    access_token_expire_days: int = 30
+
+    google_client_id: str
+
     class Config:
         env_file = ".env"
+
 
 settings = Settings()

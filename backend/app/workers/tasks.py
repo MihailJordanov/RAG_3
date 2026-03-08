@@ -11,7 +11,7 @@ utok._download_nltk_packages_if_not_present = _no_download
 from sqlalchemy.orm import Session
 
 from app.db.session import SessionLocal
-from app.db.models import Job   
+from app.db.models import Job
 from app.services.rag_ingest import ingest_pdf_to_project
 
 
@@ -35,7 +35,7 @@ def _set_job_status(
     db.commit()
 
 
-def ingest_pdf_task(project_id: str, pdf_path: str, job_id: str) -> dict:
+def ingest_pdf_task(user_id: str, project_id: str, pdf_path: str, job_id: str) -> dict:
     db = SessionLocal()
     try:
         _set_job_status(db, job_id, "running", progress=5, message="Queued for processing...")
@@ -43,7 +43,7 @@ def ingest_pdf_task(project_id: str, pdf_path: str, job_id: str) -> dict:
         def progress_cb(progress: int, message: str) -> None:
             _set_job_status(db, job_id, "running", progress=progress, message=message)
 
-        result = ingest_pdf_to_project(project_id, pdf_path, progress_cb=progress_cb)
+        result = ingest_pdf_to_project(user_id, project_id, pdf_path, progress_cb=progress_cb)
 
         _set_job_status(
             db,

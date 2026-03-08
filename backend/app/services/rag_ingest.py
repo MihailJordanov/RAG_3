@@ -79,7 +79,7 @@ def _fallback_chunk_text(text: str) -> list[str]:
     chunks: list[str] = []
     i = 0
     while i < len(text):
-        chunks.append(text[i : i + FALLBACK_CHUNK_SIZE])
+        chunks.append(text[i: i + FALLBACK_CHUNK_SIZE])
         i += max(1, FALLBACK_CHUNK_SIZE - FALLBACK_OVERLAP)
     return chunks
 
@@ -146,15 +146,16 @@ SEARCHABLE DESCRIPTION:
     return response.content
 
 
-def _make_chunk_id(project_id: str, idx: int, raw_text: str) -> str:
+def _make_chunk_id(user_id: str, project_id: str, idx: int, raw_text: str) -> str:
     h = hashlib.sha256()
+    h.update(user_id.encode("utf-8", errors="ignore"))
     h.update(project_id.encode("utf-8", errors="ignore"))
     h.update(str(idx).encode("utf-8"))
     h.update((raw_text or "").encode("utf-8", errors="ignore"))
     return h.hexdigest()
 
 
-def summarise_chunks(project_id: str, chunks) -> list[Document]:
+def summarise_chunks(user_id: str, project_id: str, chunks) -> list[Document]:
     docs: list[Document] = []
 
     for idx, chunk in enumerate(chunks):
@@ -165,7 +166,7 @@ def summarise_chunks(project_id: str, chunks) -> list[Document]:
         else:
             enhanced = content["text"]
 
-        chunk_id = _make_chunk_id(project_id, idx, content["text"])
+        chunk_id = _make_chunk_id(user_id, project_id, idx, content["text"])
 
         docs.append(
             Document(
@@ -173,6 +174,8 @@ def summarise_chunks(project_id: str, chunks) -> list[Document]:
                 metadata={
                     "chunk_id": chunk_id,
                     "chunk_index": idx,
+                    "user_id": user_id,
+                    "project_id": project_id,
                     "original_content": json.dumps(
                         {
                             "raw_text": content["text"],
@@ -198,6 +201,7 @@ def create_vector_store(documents: list[Document], persist_directory: str) -> Ch
 
 
 def ingest_pdf_to_project(
+    user_id: str,
     project_id: str,
     pdf_path: str,
     progress_cb: Callable[[int, str], None] | None = None,
@@ -216,7 +220,7 @@ def ingest_pdf_to_project(
     chunks = create_chunks_by_title(elements)
 
     update_progress(55, "Preparing document chunks...")
-    docs: list[Document] = summarise_chunks(project_id, chunks) if chunks else []
+    docs: list[Document] = summarise_chunks(user_id, project_id, chunks) if chunks else []
 
     if not docs:
         update_progress(60, "Using fallback chunking...")
@@ -229,23 +233,28 @@ def ingest_pdf_to_project(
 
         fallback_docs: list[Document] = []
         for idx, t in enumerate(text_chunks):
-            chunk_id = _make_chunk_id(project_id, idx, t)
+            chunk_id = _make_chunk_id(user_id, project_id, idx, t)
             fallback_docs.append(
                 Document(
                     page_content=t,
-                    metadata={"chunk_id": chunk_id, "chunk_index": idx},
+                    metadata={
+                        "chunk_id": chunk_id,
+                        "chunk_index": idx,
+                        "user_id": user_id,
+                        "project_id": project_id,
+                    },
                 )
             )
         docs = fallback_docs
 
-    persist_dir = project_chroma_dir(project_id)
+    persist_dir = project_chroma_dir(user_id, project_id)
 
     update_progress(75, "Building vector store...")
     _ = create_vector_store(docs, persist_directory=persist_dir)
 
     update_progress(90, "Building BM25 index...")
     bm25_index = build_bm25_index(docs)
-    bm25_path = save_bm25(bm25_index, persist_dir=persist_dir)
+    _ = save_bm25(bm25_index, persist_dir=persist_dir)
 
     update_progress(98, "Finalizing...")
 

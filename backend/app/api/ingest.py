@@ -1,13 +1,18 @@
-import os, uuid
+import os
+import uuid
+
 from fastapi import APIRouter, UploadFile, File, Depends, HTTPException
 from sqlalchemy.orm import Session
 from redis import Redis
 from rq import Queue
+
 from app.core.config import settings
 from app.db.session import get_db
-from app.db.models import Job
+from app.db.models import Job, User
 from app.services.storage import ensure_dirs, project_upload_dir
 from app.workers.tasks import ingest_pdf_task
+from app.core.deps import get_current_user, get_user_project
+from app.schemas.ingest import IngestFileResponse, ProjectSourceResponse, ProjectLimitsResponse
 
 router = APIRouter(prefix="/projects", tags=["ingest"])
 
@@ -22,17 +27,23 @@ MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024
 MAX_TOTAL_PROJECT_SIZE_BYTES = MAX_TOTAL_PROJECT_SIZE_MB * 1024 * 1024
 
 
-@router.post("/{project_id}/ingest/file")
-async def ingest_file(project_id: str, file: UploadFile = File(...), db: Session = Depends(get_db)):
+@router.post("/{project_id}/ingest/file", response_model=IngestFileResponse)
+async def ingest_file(
+    project_id: str,
+    file: UploadFile = File(...),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    get_user_project(project_id, current_user, db)
     ensure_dirs()
 
-    if not file.filename.lower().endswith(".pdf"):
-        raise HTTPException(
-            400,
-            "Only PDF files are supported."
-        )
+    if not file.filename:
+        raise HTTPException(status_code=400, detail="Missing file name.")
 
-    upload_dir = project_upload_dir(project_id)
+    if not file.filename.lower().endswith(".pdf"):
+        raise HTTPException(status_code=400, detail="Only PDF files are supported.")
+
+    upload_dir = project_upload_dir(current_user.id, project_id)
 
     existing_files = [
         name for name in os.listdir(upload_dir)
@@ -41,14 +52,14 @@ async def ingest_file(project_id: str, file: UploadFile = File(...), db: Session
 
     if len(existing_files) >= MAX_FILES_PER_PROJECT:
         raise HTTPException(
-            400,
-            f"Project file limit reached. Maximum allowed is {MAX_FILES_PER_PROJECT} files."
+            status_code=400,
+            detail=f"Project file limit reached. Maximum allowed is {MAX_FILES_PER_PROJECT} files.",
         )
 
     if file.filename in existing_files:
         raise HTTPException(
-            400,
-            f'A file named "{file.filename}" already exists in this project.'
+            status_code=400,
+            detail=f'A file named "{file.filename}" already exists in this project.',
         )
 
     file_bytes = await file.read()
@@ -56,8 +67,8 @@ async def ingest_file(project_id: str, file: UploadFile = File(...), db: Session
 
     if file_size > MAX_FILE_SIZE_BYTES:
         raise HTTPException(
-            400,
-            f'File "{file.filename}" is too large. Maximum allowed size is {MAX_FILE_SIZE_MB} MB per file.'
+            status_code=400,
+            detail=f'File "{file.filename}" is too large. Maximum allowed size is {MAX_FILE_SIZE_MB} MB per file.',
         )
 
     current_total_size = sum(
@@ -67,14 +78,15 @@ async def ingest_file(project_id: str, file: UploadFile = File(...), db: Session
 
     if current_total_size + file_size > MAX_TOTAL_PROJECT_SIZE_BYTES:
         raise HTTPException(
-            400,
-            f'Project storage limit exceeded. Maximum allowed total size is {MAX_TOTAL_PROJECT_SIZE_MB} MB.'
+            status_code=400,
+            detail=f"Project storage limit exceeded. Maximum allowed total size is {MAX_TOTAL_PROJECT_SIZE_MB} MB.",
         )
 
     job_id = str(uuid.uuid4())
     job = Job(
         id=job_id,
         project_id=project_id,
+        user_id=current_user.id,
         type="ingest",
         status="queued",
         progress=0,
@@ -87,16 +99,32 @@ async def ingest_file(project_id: str, file: UploadFile = File(...), db: Session
     with open(saved_path, "wb") as f:
         f.write(file_bytes)
 
-    rq_job = queue.enqueue(ingest_pdf_task, project_id, saved_path, job_id, job_id=job_id)
+    rq_job = queue.enqueue(
+        ingest_pdf_task,
+        current_user.id,
+        project_id,
+        saved_path,
+        job_id,
+        job_id=job_id,
+    )
 
-    return {"job_id": rq_job.id, "status": "queued", "file": file.filename}
+    return IngestFileResponse(
+        job_id=rq_job.id,
+        status="queued",
+        file=file.filename,
+    )
 
 
-@router.get("/{project_id}/sources")
-def list_project_sources(project_id: str):
+@router.get("/{project_id}/sources", response_model=list[ProjectSourceResponse])
+def list_project_sources(
+    project_id: str,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    get_user_project(project_id, current_user, db)
     ensure_dirs()
 
-    upload_dir = project_upload_dir(project_id)
+    upload_dir = project_upload_dir(current_user.id, project_id)
 
     if not os.path.exists(upload_dir):
         return []
@@ -106,21 +134,27 @@ def list_project_sources(project_id: str):
         full_path = os.path.join(upload_dir, name)
         if os.path.isfile(full_path):
             files.append(
-                {
-                    "name": name,
-                    "status": "Uploaded",
-                    "size_bytes": os.path.getsize(full_path),
-                }
+                ProjectSourceResponse(
+                    name=name,
+                    status="Uploaded",
+                    size_bytes=os.path.getsize(full_path),
+                )
             )
 
-    files.sort(key=lambda x: x["name"].lower())
+    files.sort(key=lambda x: x.name.lower())
     return files
 
 
-@router.get("/{project_id}/limits")
-def get_project_limits(project_id: str):
+@router.get("/{project_id}/limits", response_model=ProjectLimitsResponse)
+def get_project_limits(
+    project_id: str,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    get_user_project(project_id, current_user, db)
     ensure_dirs()
-    upload_dir = project_upload_dir(project_id)
+
+    upload_dir = project_upload_dir(current_user.id, project_id)
 
     existing_files = [
         name for name in os.listdir(upload_dir)
@@ -132,14 +166,14 @@ def get_project_limits(project_id: str):
         for name in existing_files
     )
 
-    return {
-        "max_files_per_project": MAX_FILES_PER_PROJECT,
-        "max_file_size_mb": MAX_FILE_SIZE_MB,
-        "max_total_project_size_mb": MAX_TOTAL_PROJECT_SIZE_MB,
-        "max_file_size_bytes": MAX_FILE_SIZE_BYTES,
-        "max_total_project_size_bytes": MAX_TOTAL_PROJECT_SIZE_BYTES,
-        "current_file_count": len(existing_files),
-        "current_total_size_bytes": current_total_size,
-        "remaining_file_slots": max(MAX_FILES_PER_PROJECT - len(existing_files), 0),
-        "remaining_total_size_bytes": max(MAX_TOTAL_PROJECT_SIZE_BYTES - current_total_size, 0),
-    }
+    return ProjectLimitsResponse(
+        max_files_per_project=MAX_FILES_PER_PROJECT,
+        max_file_size_mb=MAX_FILE_SIZE_MB,
+        max_total_project_size_mb=MAX_TOTAL_PROJECT_SIZE_MB,
+        max_file_size_bytes=MAX_FILE_SIZE_BYTES,
+        max_total_project_size_bytes=MAX_TOTAL_PROJECT_SIZE_BYTES,
+        current_file_count=len(existing_files),
+        current_total_size_bytes=current_total_size,
+        remaining_file_slots=max(MAX_FILES_PER_PROJECT - len(existing_files), 0),
+        remaining_total_size_bytes=max(MAX_TOTAL_PROJECT_SIZE_BYTES - current_total_size, 0),
+    )

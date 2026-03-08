@@ -7,6 +7,7 @@ from app.api.projects import router as projects_router
 from app.api.ingest import router as ingest_router
 from app.api.chat import router as chat_router
 from app.api.jobs import router as jobs_router
+from app.api.auth import router as auth_router
 
 app = FastAPI(title="RAG Chat")
 
@@ -24,6 +25,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+app.include_router(auth_router)
 app.include_router(projects_router)
 app.include_router(ingest_router)
 app.include_router(chat_router)

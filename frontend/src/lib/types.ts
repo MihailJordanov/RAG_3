@@ -1,3 +1,16 @@
+export type User = {
+  id: string;
+  name?: string | null;
+  email?: string | null;
+  is_guest: boolean;
+};
+
+export type AuthResponse = {
+  access_token: string;
+  token_type: "bearer" | string;
+  user: User;
+};
+
 export type Project = {
   id: string;
   name: string;

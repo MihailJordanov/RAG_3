@@ -1,4 +1,14 @@
-import { Project, Job, ChatMessage, ChatResponse, ProjectSource, ProjectLimits  } from "./types";
+import {
+  Project,
+  Job,
+  ChatMessage,
+  ChatResponse,
+  ProjectSource,
+  ProjectLimits,
+  AuthResponse,
+  User,
+} from "./types";
+import { getAccessToken } from "./storage";
 
 const BASE = process.env.NEXT_PUBLIC_API_BASE_URL!;
 
@@ -57,13 +67,20 @@ function extractErrorMessageFromXhr(xhr: XMLHttpRequest): string {
   }
 }
 
+function buildHeaders(init?: RequestInit): HeadersInit {
+  const token = getAccessToken();
+
+  return {
+    "Content-Type": "application/json",
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    ...(init?.headers || {}),
+  };
+}
+
 async function http<T>(path: string, init?: RequestInit): Promise<T> {
   const res = await fetch(`${BASE}${path}`, {
     ...init,
-    headers: {
-      "Content-Type": "application/json",
-      ...(init?.headers || {}),
-    },
+    headers: buildHeaders(init),
     cache: "no-store",
   });
 
@@ -93,6 +110,11 @@ function ingestPdfWithProgress(
     const xhr = new XMLHttpRequest();
     xhr.open("POST", `${BASE}/projects/${projectId}/ingest/file`);
 
+    const token = getAccessToken();
+    if (token) {
+      xhr.setRequestHeader("Authorization", `Bearer ${token}`);
+    }
+
     xhr.upload.onprogress = (event) => {
       if (!event.lengthComputable) return;
       const percent = Math.round((event.loaded / event.total) * 100);
@@ -121,6 +143,19 @@ function ingestPdfWithProgress(
 }
 
 export const api = {
+  authGuest: () =>
+    http<AuthResponse>("/auth/guest", {
+      method: "POST",
+    }),
+
+  authGoogle: (credential: string) =>
+    http<AuthResponse>("/auth/google", {
+      method: "POST",
+      body: JSON.stringify({ credential }),
+    }),
+
+  me: () => http<User>("/auth/me"),
+
   // projects
   listProjects: () => http<Project[]>("/projects"),
 
@@ -140,10 +175,13 @@ export const api = {
     const form = new FormData();
     form.append("file", file);
 
+    const token = getAccessToken();
+
     const res = await fetch(`${BASE}/projects/${projectId}/ingest/file`, {
       method: "POST",
       body: form,
       cache: "no-store",
+      headers: token ? { Authorization: `Bearer ${token}` } : undefined,
     });
 
     if (!res.ok) {

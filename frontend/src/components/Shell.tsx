@@ -2,6 +2,12 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { api } from "@/lib/api";
+import {
+  clearAuth,
+  getAccessToken,
+  setAccessToken,
+  setStoredUser,
+} from "@/lib/storage";
 import ProjectList from "./ProjectList";
 import ChatWindow from "./ChatWindow";
 import UploadCard from "./UploadCard";
@@ -11,9 +17,13 @@ import type {
   ChatMessage,
   ProjectSource,
   ProjectLimits,
+  User,
 } from "@/lib/types";
 
 export default function Shell() {
+  const [isAuthReady, setIsAuthReady] = useState(false);
+  const [authUser, setAuthUser] = useState<User | null>(null);
+
   const [projects, setProjects] = useState<Project[]>([]);
   const [projectLimits, setProjectLimits] = useState<ProjectLimits | null>(null);
   const [activeProjectId, setActiveProjectId] = useState<string>("");
@@ -67,6 +77,35 @@ export default function Shell() {
     });
   }
 
+  async function ensureAuth() {
+    try {
+      const existingToken = getAccessToken();
+
+      if (existingToken) {
+        try {
+          const me = await api.me();
+          setAuthUser(me);
+          setIsAuthReady(true);
+          return;
+        } catch (err) {
+          console.warn("Existing token is invalid. Falling back to guest auth.", err);
+          clearAuth();
+        }
+      }
+
+      const guestAuth = await api.authGuest();
+      setAccessToken(guestAuth.access_token);
+      setStoredUser(guestAuth.user);
+      setAuthUser(guestAuth.user);
+      setIsAuthReady(true);
+    } catch (err) {
+      console.error("Authentication bootstrap failed:", err);
+      clearAuth();
+      setAuthUser(null);
+      setIsAuthReady(false);
+    }
+  }
+
   async function loadProjectLimits(projectId: string) {
     try {
       const data = await api.getProjectLimits(projectId);
@@ -86,6 +125,15 @@ export default function Shell() {
       return data[0]?.id ?? "";
     });
   }
+
+  useEffect(() => {
+    ensureAuth().catch(console.error);
+  }, []);
+
+  useEffect(() => {
+    if (!isAuthReady) return;
+    loadProjects().catch(console.error);
+  }, [isAuthReady]);
 
   useEffect(() => {
     function handlePointerDown(e: PointerEvent) {
@@ -122,12 +170,9 @@ export default function Shell() {
     };
   }, [isMobileProjectsOpen, isMobileToolsOpen]);
 
-
   useEffect(() => {
-    loadProjects().catch(console.error);
-  }, []);
+    if (!isAuthReady) return;
 
-  useEffect(() => {
     setUploadState(null);
 
     if (!activeProjectId) {
@@ -138,9 +183,11 @@ export default function Shell() {
 
     loadSources(activeProjectId).catch(console.error);
     loadProjectLimits(activeProjectId).catch(console.error);
-  }, [activeProjectId]);
+  }, [activeProjectId, isAuthReady]);
 
   useEffect(() => {
+    if (!isAuthReady) return;
+
     if (!activeProjectId) {
       setMessages([]);
       return;
@@ -160,7 +207,7 @@ export default function Shell() {
     }
 
     loadMessages().catch(console.error);
-  }, [activeProjectId]);
+  }, [activeProjectId, isAuthReady]);
 
   useEffect(() => {
     setIsMobileProjectsOpen(false);
@@ -415,12 +462,30 @@ export default function Shell() {
     }
   }
 
+  if (!isAuthReady) {
+    return (
+      <main className="workspace-page">
+        <div className="workspace-bg-orb workspace-bg-orb-1" />
+        <div className="workspace-bg-orb workspace-bg-orb-2" />
+        <section className="workspace-shell">
+          <div className="panel chat-panel" style={{ minHeight: 420, display: "grid", placeItems: "center" }}>
+            <div style={{ textAlign: "center" }}>
+              <p className="eyebrow">RAG Workspace</p>
+              <h2 className="glow-text">Preparing your session...</h2>
+              <p style={{ opacity: 0.8, marginTop: 8 }}>
+                Creating secure guest access.
+              </p>
+            </div>
+          </div>
+        </section>
+      </main>
+    );
+  }
+
   return (
     <main className="workspace-page">
       <div className="workspace-bg-orb workspace-bg-orb-1" />
       <div className="workspace-bg-orb workspace-bg-orb-2" />
-
-
 
       <section className="workspace-shell">
         <aside
@@ -428,7 +493,6 @@ export default function Shell() {
           className={`panel sidebar-panel ${
             isMobileProjectsOpen ? "mobile-panel-open" : ""
           }`}
-          //aria-hidden={!isMobileProjectsOpen && typeof window !== "undefined" && window.innerWidth <= 860}
         >
           <ProjectList
             projects={projects}
@@ -470,7 +534,6 @@ export default function Shell() {
           className={`panel right-panel ${
             isMobileToolsOpen ? "mobile-panel-open" : ""
           }`}
-          //aria-hidden={!isMobileToolsOpen && typeof window !== "undefined" && window.innerWidth <= 860}
         >
           {hasSelectedProject ? (
             <>

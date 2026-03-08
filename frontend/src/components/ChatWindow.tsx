@@ -5,6 +5,7 @@ import type { ChatMessage } from "@/lib/types";
 import CreateProjectForm from "./CreateProjectForm";
 
 type Props = {
+  authLabel?: string;
   projectName: string;
   projectId: string | null;
   hasSelectedProject: boolean;
@@ -20,9 +21,13 @@ type Props = {
   onToggleToolsPanel?: () => void;
   projectsToggleRef?: React.RefObject<HTMLButtonElement | null>;
   toolsToggleRef?: React.RefObject<HTMLButtonElement | null>;
+  isGuest?: boolean;
+  onOpenAuthModal?: () => void;
+  onLogout?: () => void;
 };
 
 export default function ChatWindow({
+  authLabel,
   projectName,
   projectId,
   hasSelectedProject,
@@ -38,44 +43,23 @@ export default function ChatWindow({
   onToggleToolsPanel,
   projectsToggleRef,
   toolsToggleRef,
+  isGuest = false,
+  onOpenAuthModal,
+  onLogout,
 }: Props) {
   const [input, setInput] = useState("");
-  const [showProjectIdPanel, setShowProjectIdPanel] = useState(false);
-  const [copied, setCopied] = useState(false);
-
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
-  const projectIdPanelRef = useRef<HTMLDivElement | null>(null);
-  const projectIdToggleRef = useRef<HTMLButtonElement | null>(null);
 
   const isEmptyChat = messages.length === 0;
-  const EMPTY_MESSAGE = "Your workspace is empty. Upload a document from the Tools ✦ panel.";
+  const EMPTY_MESSAGE =
+    "Your workspace is empty. Upload a document from the Tools ✦ panel.";
 
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
+    messagesEndRef.current?.scrollIntoView({
+      behavior: "smooth",
+      block: "end",
+    });
   }, [messages, isGenerating]);
-
-  useEffect(() => {
-    function handlePointerDown(e: PointerEvent) {
-      if (!showProjectIdPanel) return;
-
-      const target = e.target as Node;
-
-      const clickedInsidePanel =
-        projectIdPanelRef.current?.contains(target) ?? false;
-      const clickedToggle =
-        projectIdToggleRef.current?.contains(target) ?? false;
-
-      if (!clickedInsidePanel && !clickedToggle) {
-        setShowProjectIdPanel(false);
-        setCopied(false);
-      }
-    }
-
-    document.addEventListener("pointerdown", handlePointerDown);
-    return () => {
-      document.removeEventListener("pointerdown", handlePointerDown);
-    };
-  }, [showProjectIdPanel]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -87,20 +71,16 @@ export default function ChatWindow({
     await onSend(trimmed);
   }
 
-  async function handleCopyProjectId() {
-    if (!projectId) return;
-
-    try {
-      await navigator.clipboard.writeText(projectId);
-      setCopied(true);
-
-      setTimeout(() => {
-        setCopied(false);
-      }, 1200);
-    } catch (err) {
-      console.error(err);
-      alert("Failed to copy project ID.");
-    }
+  function renderAuthButton() {
+    return (
+      <button
+        type="button"
+        className="auth-header-button"
+        onClick={isGuest ? onOpenAuthModal : onLogout}
+      >
+        {isGuest ? "Sign in" : "Exit"}
+      </button>
+    );
   }
 
   if (!hasSelectedProject) {
@@ -120,61 +100,20 @@ export default function ChatWindow({
             <span className="mobile-toggle-text">Projects</span>
           </button>
 
-          <div className="mobile-id-tools">
+          <div className="mobile-toolbar-right">
             <button
-              ref={projectIdToggleRef}
+              ref={toolsToggleRef}
               type="button"
-              className="mobile-panel-toggle id-toggle-mobile"
-              onClick={() => {
-                setShowProjectIdPanel((prev) => !prev);
-                setCopied(false);
-              }}
-              aria-label="Toggle project ID"
+              className={`mobile-panel-toggle ${
+                isMobileToolsOpen ? "active" : ""
+              }`}
+              onClick={onToggleToolsPanel}
+              aria-label="Toggle tools panel"
             >
-              <span className="mobile-toggle-text">ID</span>
+              <span className="mobile-toggle-text">Tools</span>
+              <span className="mobile-toggle-icon">✦</span>
             </button>
-
-            {showProjectIdPanel && projectId && (
-              <div ref={projectIdPanelRef} className="project-id-panel mobile-project-id-panel">
-                <div className="project-id-label">Project ID</div>
-                <div className="project-id-value">{projectId}</div>
-
-                <div className="project-id-actions">
-                  <button
-                    type="button"
-                    className="secondary-button project-id-copy-btn"
-                    onClick={handleCopyProjectId}
-                  >
-                    {copied ? "Copied!" : "Copy"}
-                  </button>
-
-                  <button
-                    type="button"
-                    className="neon-button project-id-done-btn"
-                    onClick={() => {
-                      setShowProjectIdPanel(false);
-                      setCopied(false);
-                    }}
-                  >
-                    Done
-                  </button>
-                </div>
-              </div>
-            )}
           </div>
-
-          <button
-            ref={toolsToggleRef}
-            type="button"
-            className={`mobile-panel-toggle ${
-              isMobileToolsOpen ? "active" : ""
-            }`}
-            onClick={onToggleToolsPanel}
-            aria-label="Toggle tools panel"
-          >
-            <span className="mobile-toggle-text">Tools</span>
-            <span className="mobile-toggle-icon">✦</span>
-          </button>
         </div>
 
         <section className="no-project-state">
@@ -215,68 +154,32 @@ export default function ChatWindow({
           <span className="mobile-toggle-text">Projects</span>
         </button>
 
-        <button
-          ref={toolsToggleRef}
-          type="button"
-          className={`mobile-panel-toggle ${
-            isMobileToolsOpen ? "active" : ""
-          }`}
-          onClick={onToggleToolsPanel}
-          aria-label="Toggle tools panel"
-        >
-          <span className="mobile-toggle-text">Tools</span>
-          <span className="mobile-toggle-icon">✦</span>
-        </button>
+        <div className="mobile-toolbar-right">
+          <button
+            ref={toolsToggleRef}
+            type="button"
+            className={`mobile-panel-toggle ${
+              isMobileToolsOpen ? "active" : ""
+            }`}
+            onClick={onToggleToolsPanel}
+            aria-label="Toggle tools panel"
+          >
+            <span className="mobile-toggle-text">Tools</span>
+            <span className="mobile-toggle-icon">✦</span>
+          </button>
+        </div>
       </div>
 
       {isEmptyChat ? (
         <section className="chat-hero chat-hero-empty">
           <div className="chat-topbar">
             <div />
-            <div className="project-id-tools">
-              <button
-                ref={projectIdToggleRef}
-                type="button"
-                className="project-id-toggle"
-                onClick={() => {
-                  setShowProjectIdPanel((prev) => !prev);
-                  setCopied(false);
-                }}
-              >
-                {showProjectIdPanel ? "Hide ID" : "ID"}
-              </button>
-
-              {showProjectIdPanel && projectId && (
-                <div ref={projectIdPanelRef} className="project-id-panel">
-                  <div className="project-id-label">Project ID</div>
-                  <div className="project-id-value">{projectId}</div>
-
-                  <div className="project-id-actions">
-                    <button
-                      type="button"
-                      className="secondary-button project-id-copy-btn"
-                      onClick={handleCopyProjectId}
-                    >
-                      {copied ? "Copied!" : "Copy"}
-                    </button>
-
-                    <button
-                      type="button"
-                      className="neon-button project-id-done-btn"
-                      onClick={() => {
-                        setShowProjectIdPanel(false);
-                        setCopied(false);
-                      }}
-                    >
-                      Done
-                    </button>
-                  </div>
-                </div>
-              )}
+            <div className="chat-topbar-actions chat-topbar-actions-empty">
+              {renderAuthButton()}
             </div>
           </div>
 
-          <p className="eyebrow">AI Workspace</p>
+          <p className="eyebrow">{authLabel ?? "AI Workspace"}</p>
           <h1 className="chat-hero-title glow-text">RAG 3</h1>
           <p className="chat-hero-subtitle">{projectName}</p>
 
@@ -287,7 +190,7 @@ export default function ChatWindow({
       ) : (
         <header className="chat-header">
           <div>
-            <p className="eyebrow">AI Workspace</p>
+            <p className="eyebrow">{authLabel ?? "AI Workspace"}</p>
             <h2 className="chat-title glow-text">RAG 3</h2>
             <p className="chat-project-name">{projectName}</p>
           </div>
@@ -296,48 +199,7 @@ export default function ChatWindow({
             <div className={`status-pill ${isGenerating ? "live" : ""}`}>
               {isGenerating ? "Generating..." : "Ready"}
             </div>
-
-            <div className="project-id-tools">
-              <button
-                ref={projectIdToggleRef}
-                type="button"
-                className="project-id-toggle"
-                onClick={() => {
-                  setShowProjectIdPanel((prev) => !prev);
-                  setCopied(false);
-                }}
-              >
-                {showProjectIdPanel ? "Hide ID" : "ID"}
-              </button>
-
-              {showProjectIdPanel && projectId && (
-                <div ref={projectIdPanelRef} className="project-id-panel">
-                  <div className="project-id-label">Project ID</div>
-                  <div className="project-id-value">{projectId}</div>
-
-                  <div className="project-id-actions">
-                    <button
-                      type="button"
-                      className="secondary-button project-id-copy-btn"
-                      onClick={handleCopyProjectId}
-                    >
-                      {copied ? "Copied!" : "Copy"}
-                    </button>
-
-                    <button
-                      type="button"
-                      className="neon-button project-id-done-btn"
-                      onClick={() => {
-                        setShowProjectIdPanel(false);
-                        setCopied(false);
-                      }}
-                    >
-                      Done
-                    </button>
-                  </div>
-                </div>
-              )}
-            </div>
+            {renderAuthButton()}
           </div>
         </header>
       )}

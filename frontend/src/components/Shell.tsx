@@ -8,6 +8,7 @@ import {
   setAccessToken,
   setStoredUser,
 } from "@/lib/storage";
+import AuthModal from "./AuthModal";
 import ProjectList from "./ProjectList";
 import ChatWindow from "./ChatWindow";
 import UploadCard from "./UploadCard";
@@ -23,6 +24,9 @@ import type {
 export default function Shell() {
   const [isAuthReady, setIsAuthReady] = useState(false);
   const [authUser, setAuthUser] = useState<User | null>(null);
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [isAuthLoading, setIsAuthLoading] = useState(false);
+  const [authError, setAuthError] = useState<string | null>(null);
 
   const [projects, setProjects] = useState<Project[]>([]);
   const [projectLimits, setProjectLimits] = useState<ProjectLimits | null>(null);
@@ -52,9 +56,35 @@ export default function Shell() {
   const projectsToggleRef = useRef<HTMLButtonElement | null>(null);
   const toolsToggleRef = useRef<HTMLButtonElement | null>(null);
 
+  const authLabel = authUser?.is_guest
+    ? "Guest session"
+    : authUser?.name || authUser?.email || "Signed in";
+
   function closeAllMobilePanels() {
     setIsMobileProjectsOpen(false);
     setIsMobileToolsOpen(false);
+  }
+
+  function handleOpenAuthModal() {
+    setAuthError(null);
+    setIsAuthModalOpen(true);
+    setIsAuthReady(false);
+  }
+
+  function handleLogout() {
+    clearAuth();
+    setAuthUser(null);
+    setProjects([]);
+    setMessages([]);
+    setSources([]);
+    setProjectLimits(null);
+    setActiveProjectId("");
+    setNewProjectName("");
+    setUploadState(null);
+    setBusyId(null);
+    setIsAuthReady(false);
+    setIsAuthModalOpen(true);
+    setAuthError(null);
   }
 
   function toggleProjectsPanel() {
@@ -86,23 +116,61 @@ export default function Shell() {
           const me = await api.me();
           setAuthUser(me);
           setIsAuthReady(true);
+          setIsAuthModalOpen(false);
           return;
         } catch (err) {
-          console.warn("Existing token is invalid. Falling back to guest auth.", err);
+          console.warn("Stored token is invalid. Clearing auth.", err);
           clearAuth();
         }
       }
 
-      const guestAuth = await api.authGuest();
-      setAccessToken(guestAuth.access_token);
-      setStoredUser(guestAuth.user);
-      setAuthUser(guestAuth.user);
-      setIsAuthReady(true);
+      setAuthUser(null);
+      setIsAuthReady(false);
+      setIsAuthModalOpen(true);
     } catch (err) {
       console.error("Authentication bootstrap failed:", err);
       clearAuth();
       setAuthUser(null);
       setIsAuthReady(false);
+      setIsAuthModalOpen(true);
+    }
+  }
+
+  async function handleGuestAuth() {
+    try {
+      setIsAuthLoading(true);
+      setAuthError(null);
+
+      const auth = await api.authGuest();
+      setAccessToken(auth.access_token);
+      setStoredUser(auth.user);
+      setAuthUser(auth.user);
+      setIsAuthReady(true);
+      setIsAuthModalOpen(false);
+    } catch (err) {
+      console.error(err);
+      setAuthError(err instanceof Error ? err.message : "Guest login failed.");
+    } finally {
+      setIsAuthLoading(false);
+    }
+  }
+
+  async function handleGoogleAuth(credential: string) {
+    try {
+      setIsAuthLoading(true);
+      setAuthError(null);
+
+      const auth = await api.authGoogle(credential);
+      setAccessToken(auth.access_token);
+      setStoredUser(auth.user);
+      setAuthUser(auth.user);
+      setIsAuthReady(true);
+      setIsAuthModalOpen(false);
+    } catch (err) {
+      console.error(err);
+      setAuthError(err instanceof Error ? err.message : "Google login failed.");
+    } finally {
+      setIsAuthLoading(false);
     }
   }
 
@@ -124,6 +192,211 @@ export default function Shell() {
       if (current && data.some((p) => p.id === current)) return current;
       return data[0]?.id ?? "";
     });
+  }
+
+  async function loadSources(projectId: string) {
+    try {
+      setIsLoadingSources(true);
+      const data = await api.listSources(projectId);
+      setSources(data);
+    } catch (err) {
+      console.error(err);
+      setSources([]);
+    } finally {
+      setIsLoadingSources(false);
+    }
+  }
+
+  async function pollIngestJob(
+    jobId: string,
+    fileName: string,
+    projectId: string
+  ) {
+    let done = false;
+
+    while (!done) {
+      const status = await api.getIngestJobStatus(jobId);
+
+      if (status.status === "queued" || status.status === "running") {
+        setUploadState({
+          fileName,
+          phase: "processing",
+          progress:
+            typeof status.progress === "number"
+              ? status.progress
+              : status.status === "queued"
+              ? 15
+              : 65,
+          message: status.message ?? "Processing document...",
+        });
+      }
+
+      if (status.status === "succeeded") {
+        setUploadState({
+          fileName,
+          phase: "done",
+          progress: 100,
+          message: "File uploaded and indexed successfully.",
+        });
+
+        await loadSources(projectId);
+        await loadProjectLimits(projectId);
+        done = true;
+        break;
+      }
+
+      if (status.status === "failed" || status.status === "not_found") {
+        setUploadState({
+          fileName,
+          phase: "error",
+          progress: 0,
+          message:
+            status.error ?? status.message ?? "Document processing failed.",
+        });
+        done = true;
+        break;
+      }
+
+      await new Promise((resolve) => setTimeout(resolve, 1200));
+    }
+  }
+
+  async function handleCreateProject() {
+    const name = newProjectName.trim();
+    if (!name) return;
+
+    try {
+      const created = await api.createProject(name);
+      setNewProjectName("");
+      await loadProjects();
+      setActiveProjectId(created.id);
+      closeAllMobilePanels();
+    } catch (err) {
+      console.error(err);
+      alert("Failed to create project.");
+    }
+  }
+
+  async function handleDeleteProject(projectId: string) {
+    const p = projects.find((x) => x.id === projectId);
+    const label = p ? `"${p.name}"` : "this project";
+
+    if (
+      !confirm(
+        `Delete ${label}? This will remove its messages, jobs, uploads and vector DB.`
+      )
+    ) {
+      return;
+    }
+
+    try {
+      setBusyId(projectId);
+      await api.deleteProject(projectId);
+
+      const remaining = projects.filter((p) => p.id !== projectId);
+      if (activeProjectId === projectId) {
+        setActiveProjectId(remaining[0]?.id ?? "");
+      }
+
+      await loadProjects();
+    } catch (e) {
+      console.error(e);
+      alert("Failed to delete project. Check backend logs.");
+    } finally {
+      setBusyId(null);
+    }
+  }
+
+  async function handleSendMessage(text: string) {
+    if (!activeProjectId) return;
+
+    const optimisticUserMessage: ChatMessage = {
+      role: "user",
+      content: text,
+    };
+
+    setMessages((prev) => [...prev, optimisticUserMessage]);
+    setIsGenerating(true);
+
+    try {
+      const response = await api.chat(activeProjectId, text);
+
+      const assistantMessage: ChatMessage = {
+        role: "assistant",
+        content: response.answer,
+      };
+
+      setMessages((prev) => [...prev, assistantMessage]);
+    } catch (err) {
+      console.error(err);
+
+      const assistantError: ChatMessage = {
+        role: "assistant",
+        content: "Failed to get response from backend.",
+      };
+
+      setMessages((prev) => [...prev, assistantError]);
+    } finally {
+      setIsGenerating(false);
+    }
+  }
+
+  async function handleUpload(file: File) {
+    if (!activeProjectId) {
+      alert("Please select a project first.");
+      return;
+    }
+
+    setUploadState({
+      fileName: file.name,
+      phase: "uploading",
+      progress: 0,
+      message: "Uploading file...",
+    });
+
+    try {
+      const result = await api.ingestPdfWithProgress(
+        activeProjectId,
+        file,
+        (progress) => {
+          setUploadState({
+            fileName: file.name,
+            phase: "uploading",
+            progress,
+            message: "Uploading file...",
+          });
+        }
+      );
+
+      if (result?.job_id) {
+        setUploadState({
+          fileName: file.name,
+          phase: "processing",
+          progress: 15,
+          message: "Queued for processing...",
+        });
+
+        await pollIngestJob(result.job_id, file.name, activeProjectId);
+      } else {
+        setUploadState({
+          fileName: file.name,
+          phase: "done",
+          progress: 100,
+          message: "File uploaded successfully.",
+        });
+
+        await loadSources(activeProjectId);
+        await loadProjectLimits(activeProjectId);
+      }
+    } catch (err) {
+      console.error(err);
+      setUploadState({
+        fileName: file.name,
+        phase: "error",
+        progress: 0,
+        message: err instanceof Error ? err.message : "Failed to upload file.",
+      });
+    }
   }
 
   useEffect(() => {
@@ -257,223 +530,31 @@ export default function Shell() {
 
   const hasSelectedProject = !!activeProject;
 
-  async function handleCreateProject() {
-    const name = newProjectName.trim();
-    if (!name) return;
-
-    try {
-      const created = await api.createProject(name);
-      setNewProjectName("");
-      await loadProjects();
-      setActiveProjectId(created.id);
-      closeAllMobilePanels();
-    } catch (err) {
-      console.error(err);
-      alert("Failed to create project.");
-    }
-  }
-
-  async function handleDeleteProject(projectId: string) {
-    const p = projects.find((x) => x.id === projectId);
-    const label = p ? `"${p.name}"` : "this project";
-
-    if (
-      !confirm(
-        `Delete ${label}? This will remove its messages, jobs, uploads and vector DB.`
-      )
-    ) {
-      return;
-    }
-
-    try {
-      setBusyId(projectId);
-      await api.deleteProject(projectId);
-
-      const remaining = projects.filter((p) => p.id !== projectId);
-      if (activeProjectId === projectId) {
-        setActiveProjectId(remaining[0]?.id ?? "");
-      }
-
-      await loadProjects();
-    } catch (e) {
-      console.error(e);
-      alert("Failed to delete project. Check backend logs.");
-    } finally {
-      setBusyId(null);
-    }
-  }
-
-  async function handleSendMessage(text: string) {
-    if (!activeProjectId) return;
-
-    const optimisticUserMessage: ChatMessage = {
-      role: "user",
-      content: text,
-    };
-
-    setMessages((prev) => [...prev, optimisticUserMessage]);
-    setIsGenerating(true);
-
-    try {
-      const response = await api.chat(activeProjectId, text);
-
-      const assistantMessage: ChatMessage = {
-        role: "assistant",
-        content: response.answer,
-      };
-
-      setMessages((prev) => [...prev, assistantMessage]);
-    } catch (err) {
-      console.error(err);
-
-      const assistantError: ChatMessage = {
-        role: "assistant",
-        content: "Failed to get response from backend.",
-      };
-
-      setMessages((prev) => [...prev, assistantError]);
-    } finally {
-      setIsGenerating(false);
-    }
-  }
-
-  async function loadSources(projectId: string) {
-    try {
-      setIsLoadingSources(true);
-      const data = await api.listSources(projectId);
-      setSources(data);
-    } catch (err) {
-      console.error(err);
-      setSources([]);
-    } finally {
-      setIsLoadingSources(false);
-    }
-  }
-
-  async function pollIngestJob(
-    jobId: string,
-    fileName: string,
-    projectId: string
-  ) {
-    let done = false;
-
-    while (!done) {
-      const status = await api.getIngestJobStatus(jobId);
-
-      if (status.status === "queued" || status.status === "running") {
-        setUploadState({
-          fileName,
-          phase: "processing",
-          progress:
-            typeof status.progress === "number"
-              ? status.progress
-              : status.status === "queued"
-              ? 15
-              : 65,
-          message: status.message ?? "Processing document...",
-        });
-      }
-
-      if (status.status === "succeeded") {
-        setUploadState({
-          fileName,
-          phase: "done",
-          progress: 100,
-          message: "File uploaded and indexed successfully.",
-        });
-
-        await loadSources(projectId);
-        await loadProjectLimits(projectId);
-        done = true;
-        break;
-      }
-
-      if (status.status === "failed" || status.status === "not_found") {
-        setUploadState({
-          fileName,
-          phase: "error",
-          progress: 0,
-          message:
-            status.error ?? status.message ?? "Document processing failed.",
-        });
-        done = true;
-        break;
-      }
-
-      await new Promise((resolve) => setTimeout(resolve, 1200));
-    }
-  }
-
-  async function handleUpload(file: File) {
-    if (!activeProjectId) {
-      alert("Please select a project first.");
-      return;
-    }
-
-    setUploadState({
-      fileName: file.name,
-      phase: "uploading",
-      progress: 0,
-      message: "Uploading file...",
-    });
-
-    try {
-      const result = await api.ingestPdfWithProgress(
-        activeProjectId,
-        file,
-        (progress) => {
-          setUploadState({
-            fileName: file.name,
-            phase: "uploading",
-            progress,
-            message: "Uploading file...",
-          });
-        }
-      );
-
-      if (result?.job_id) {
-        setUploadState({
-          fileName: file.name,
-          phase: "processing",
-          progress: 15,
-          message: "Queued for processing...",
-        });
-
-        await pollIngestJob(result.job_id, file.name, activeProjectId);
-      } else {
-        setUploadState({
-          fileName: file.name,
-          phase: "done",
-          progress: 100,
-          message: "File uploaded successfully.",
-        });
-
-        await loadSources(activeProjectId);
-        await loadProjectLimits(activeProjectId);
-      }
-    } catch (err) {
-      console.error(err);
-      setUploadState({
-        fileName: file.name,
-        phase: "error",
-        progress: 0,
-        message: err instanceof Error ? err.message : "Failed to upload file.",
-      });
-    }
-  }
-
   if (!isAuthReady) {
     return (
       <main className="workspace-page">
         <div className="workspace-bg-orb workspace-bg-orb-1" />
         <div className="workspace-bg-orb workspace-bg-orb-2" />
+
+        <AuthModal
+          open={isAuthModalOpen}
+          onGuest={handleGuestAuth}
+          onGoogleSuccess={handleGoogleAuth}
+          onClose={handleGuestAuth}
+          isLoading={isAuthLoading}
+          error={authError}
+        />
+
         <section className="workspace-shell">
-          <div className="panel chat-panel" style={{ minHeight: 420, display: "grid", placeItems: "center" }}>
+          <div
+            className="panel chat-panel"
+            style={{ minHeight: 420, display: "grid", placeItems: "center" }}
+          >
             <div style={{ textAlign: "center" }}>
               <p className="eyebrow">RAG Workspace</p>
-              <h2 className="glow-text">Preparing your session...</h2>
+              <h2 className="glow-text">Authentication required</h2>
               <p style={{ opacity: 0.8, marginTop: 8 }}>
-                Creating secure guest access.
+                Choose Google login or continue as guest.
               </p>
             </div>
           </div>
@@ -510,6 +591,7 @@ export default function Shell() {
         </aside>
 
         <section className="panel chat-panel">
+
           <ChatWindow
             projectName={activeProject?.name ?? "No project selected"}
             projectId={activeProject?.id ?? null}
@@ -526,6 +608,10 @@ export default function Shell() {
             onToggleToolsPanel={toggleToolsPanel}
             projectsToggleRef={projectsToggleRef}
             toolsToggleRef={toolsToggleRef}
+            authLabel={authLabel}
+            isGuest={Boolean(authUser?.is_guest)}
+            onOpenAuthModal={handleOpenAuthModal}
+            onLogout={handleLogout}
           />
         </section>
 

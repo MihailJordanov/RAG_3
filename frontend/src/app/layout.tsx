@@ -1,5 +1,6 @@
 import "../styles/globals.css";
 import type { Metadata, Viewport } from "next";
+import { GoogleOAuthProvider } from "@react-oauth/google";
 
 export const metadata: Metadata = {
   title: "RAG Workspace",
@@ -16,9 +17,15 @@ export default function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
+  const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID ?? "";
+
   return (
     <html lang="en">
-      <body>{children}</body>
+      <body>
+        <GoogleOAuthProvider clientId={clientId}>
+          {children}
+        </GoogleOAuthProvider>
+      </body>
     </html>
   );
 }

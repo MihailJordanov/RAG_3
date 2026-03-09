@@ -1,5 +1,6 @@
 import json
 import os
+import platform
 import hashlib
 from typing import List, Callable
 
@@ -14,8 +15,7 @@ from app.services.bm25.bm25_index import build_bm25_index, save_bm25
 from app.core.config import settings
 from app.services.storage import project_chroma_dir
 
-
-POPPLER_BIN = r"C:\Users\User\Downloads\Release-25.12.0-0\poppler-25.12.0\Library\bin"
+POPPLER_BIN = os.getenv("POPPLER_BIN", "").strip()
 
 TITLE_MAX_CHARS = 3000
 TITLE_NEW_AFTER = 2400
@@ -26,25 +26,30 @@ FALLBACK_OVERLAP = 200
 
 
 def _ensure_poppler() -> None:
-    pdfinfo_exe = os.path.join(POPPLER_BIN, "pdfinfo.exe")
-    pdftoppm_exe = os.path.join(POPPLER_BIN, "pdftoppm.exe")
-    if not (os.path.exists(pdfinfo_exe) and os.path.exists(pdftoppm_exe)):
-        raise RuntimeError(
-            "Poppler not found.\n"
-            f"Expected:\n{pdfinfo_exe}\n{pdftoppm_exe}\n"
-            "Fix POPPLER_BIN to point to the folder containing pdfinfo.exe and pdftoppm.exe."
-        )
+    if platform.system() == "Windows" and POPPLER_BIN:
+        pdfinfo_exe = os.path.join(POPPLER_BIN, "pdfinfo.exe")
+        pdftoppm_exe = os.path.join(POPPLER_BIN, "pdftoppm.exe")
+        if not (os.path.exists(pdfinfo_exe) and os.path.exists(pdftoppm_exe)):
+            raise RuntimeError(
+                "Poppler not found.\n"
+                f"Expected:\n{pdfinfo_exe}\n{pdftoppm_exe}\n"
+                "Fix POPPLER_BIN to point to the folder containing pdfinfo.exe and pdftoppm.exe."
+            )
 
 
 def _partition_pdf(file_path: str, strategy: str):
-    return partition_pdf(
-        filename=file_path,
-        strategy=strategy,
-        infer_table_structure=True,
-        extract_image_block_types=["Image"],
-        extract_image_block_to_payload=True,
-        pdf2image_poppler_path=POPPLER_BIN,
-    )
+    kwargs = {
+        "filename": file_path,
+        "strategy": strategy,
+        "infer_table_structure": True,
+        "extract_image_block_types": ["Image"],
+        "extract_image_block_to_payload": True,
+    }
+
+    if platform.system() == "Windows" and POPPLER_BIN:
+        kwargs["pdf2image_poppler_path"] = POPPLER_BIN
+
+    return partition_pdf(**kwargs)
 
 
 def partition_document(file_path: str):

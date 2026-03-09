@@ -2,6 +2,10 @@ FROM python:3.11-slim
 
 WORKDIR /app
 
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
+ENV NLTK_DATA=/usr/local/share/nltk_data
+
 RUN apt-get update && apt-get install -y \
     build-essential \
     gcc \
@@ -19,7 +23,8 @@ RUN apt-get update && apt-get install -y \
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-RUN python -m nltk.downloader punkt punkt_tab averaged_perceptron_tagger averaged_perceptron_tagger_eng
+RUN python -m nltk.downloader -d /usr/local/share/nltk_data \
+    punkt punkt_tab averaged_perceptron_tagger averaged_perceptron_tagger_eng
 
 COPY . .
 

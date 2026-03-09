@@ -100,7 +100,6 @@ export default function ChatWindow({
             <span className="mobile-toggle-text">Projects</span>
           </button>
 
-          <div className="mobile-toolbar-right">
             <button
               ref={toolsToggleRef}
               type="button"
@@ -113,7 +112,6 @@ export default function ChatWindow({
               <span className="mobile-toggle-text">Tools</span>
               <span className="mobile-toggle-icon">✦</span>
             </button>
-          </div>
         </div>
 
         <section className="no-project-state">
@@ -154,7 +152,7 @@ export default function ChatWindow({
           <span className="mobile-toggle-text">Projects</span>
         </button>
 
-        <div className="mobile-toolbar-right">
+
           <button
             ref={toolsToggleRef}
             type="button"
@@ -167,7 +165,6 @@ export default function ChatWindow({
             <span className="mobile-toggle-text">Tools</span>
             <span className="mobile-toggle-icon">✦</span>
           </button>
-        </div>
       </div>
 
       {isEmptyChat ? (

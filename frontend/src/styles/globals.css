@@ -1847,19 +1847,13 @@ color: #e9d5ff;
 }
 
 .chat-header-actions,
-.chat-topbar-actions,
-.mobile-toolbar-right {
+.chat-topbar-actions, {
   display: flex;
   align-items: center;
   gap: 10px;
 }
 
 .chat-topbar-actions {
-  position: relative;
-}
-
-.mobile-toolbar-right {
-  margin-left: auto;
   position: relative;
 }
 
@@ -2095,23 +2089,6 @@ color: #e9d5ff;
     margin-bottom: 12px;
     flex-shrink: 0;
   }
-
-  .mobile-chat-toolbar > .mobile-panel-toggle,
-  .mobile-chat-toolbar > .mobile-toolbar-right {
-    flex: 1 1 0;
-    min-width: 0;
-  }
-
-  .mobile-toolbar-right {
-    display: flex;
-    min-width: 0;
-  }
-
-  .mobile-toolbar-right > .mobile-panel-toggle {
-    width: 100%;
-    flex: 1 1 0;
-  }
-
 
   .mobile-panel-toggle {
     display: inline-flex;

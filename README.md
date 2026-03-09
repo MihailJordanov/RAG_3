@@ -5,7 +5,7 @@ RAG 3 is a **full-stack Retrieval-Augmented Generation (RAG) platform** that all
 The system processes documents, builds semantic embeddings, and retrieves the most relevant information to generate accurate answers using large language models.
 
 🔗 **Live Demo**  
-https://rag-3.duckdns.org/projects
+https://rag-3.duckdns.org
 
 ---
 
@@ -126,42 +126,29 @@ http://localhost
 
 Below are some screenshots of the system.
 
-![Screenshot](images/image_09_03_26_1.png)
-![Screenshot](images/image_09_03_26_2.png)
-![Screenshot](images/image_09_03_26_3.png)
-![Screenshot](images/image_09_03_26_4.png)
-![Screenshot](images/image_09_03_26_5.png)
-![Screenshot](images/image_09_03_26_6.png)
-![Screenshot](images/image_09_03_26_7.png)
-![Screenshot](images/image_09_03_26_8.png)
-![Screenshot](images/image_09_03_26_9.png)
-![Screenshot](images/image_09_03_26_10.png)
+<h2 align="center">📷 Screenshots</h2>
 
----
-
-# 📚 Future Improvements
-
-- Advanced evaluation metrics for retrieval quality
-- Streaming responses from the LLM
-- Support for more document formats
-- Improved UI for large projects
-- User project sharing
-
----
-
-# ⭐ Why this project
-
-RAG 3 was created as an exploration of modern **AI search systems and document-based conversational interfaces**.
-
-The project focuses on combining **LLMs with advanced retrieval techniques** to improve answer accuracy and reliability.
-
----
-
-# 🤝 Contributions
-
-Contributions, ideas, and improvements are always welcome.
-
-If you find the project interesting, feel free to fork it or open a pull request.
+<div align="center">
+  <img src="history/images/image_09_03_26_1.png" width="900" alt="Screenshot 1" />
+  <br><br>
+  <img src="history/images/image_09_03_26_2.png" width="900" alt="Screenshot 2" />
+  <br><br>
+  <img src="history/images/image_09_03_26_3.png" width="900" alt="Screenshot 3" />
+  <br><br>
+  <img src="history/images/image_09_03_26_4.png" width="900" alt="Screenshot 4" />
+  <br><br>
+  <img src="history/images/image_09_03_26_5.png" width="900" alt="Screenshot 5" />
+  <br><br>
+  <img src="history/images/image_09_03_26_6.png" width="900" alt="Screenshot 6" />
+  <br><br>
+  <img src="history/images/image_09_03_26_7.png" width="900" alt="Screenshot 7" />
+  <br><br>
+  <img src="history/images/image_09_03_26_8.png" width="900" alt="Screenshot 8" />
+  <br><br>
+  <img src="history/images/image_09_03_26_9.png" width="900" alt="Screenshot 9" />
+  <br><br>
+  <img src="history/images/image_09_03_26_10.png" width="900" alt="Screenshot 10" />
+</div>
 
 ---
 

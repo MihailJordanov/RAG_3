@@ -80,7 +80,7 @@ services:
       - redis
     volumes:
       - backend_data:/app/data
-    command: python -m rq worker -u ${REDIS_URL} default
+    command: rq worker --url ${REDIS_URL} default
     networks:
       - appnet
 

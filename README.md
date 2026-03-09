@@ -129,7 +129,7 @@ Below are some screenshots of the system.
 <h2 align="center">📷 Screenshots</h2>
 
 <div align="center">
-  <img src="history/images/image_09_03_26_1.png" width="900" alt="Screenshot 1" />
+  <img src="history/images/image_09_03_26_1_new.png" width="900" alt="Screenshot 1" />
   <br><br>
   <img src="history/images/image_09_03_26_2.png" width="900" alt="Screenshot 2" />
   <br><br>

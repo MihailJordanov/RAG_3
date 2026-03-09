@@ -36,4 +36,3 @@ app.include_router(jobs_router)
 # python -m app.workers.rq_worker 
 # cd ./frontend
 # npm run dev
-#
